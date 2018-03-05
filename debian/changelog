@@ -1,0 +1,5 @@
+pve-kernel-4.13 (5.1-42) unstable; urgency=medium
+
+  * add new meta packages pve-kernel-4.13 and pve-headers-4.13
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 5 Mar 2018 15:05:49 +0100

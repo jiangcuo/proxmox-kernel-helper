@@ -1,0 +1,27 @@
+Source: pve-kernel-@KERNEL_VER@
+Section: admin
+Priority: optional
+Build-Depends: debhelper (>=10~),
+               lintian,
+               sed,
+Maintainer: Proxmox Support Team <support@proxmox.com>
+
+Package: pve-headers-@KERNEL_VER@
+Architecture: all
+Section: admin
+Priority: optional
+Depends: pve-headers-@KERNEL_ABI@,
+Description: Latest Proxmox VE Kernel Headers
+ This is a virtual package which will install the kernel headers
+ for the latest available proxmox kernel from the @KERNEL_VER@
+ series.
+
+Package: pve-kernel-@KERNEL_VER@
+Architecture: all
+Section: admin
+Priority: optional
+Depends: pve-firmware,
+         pve-kernel-@KERNEL_ABI@,
+Description: Latest Proxmox VE Kernel Image
+ This is a virtual package which will install the latest available
+ proxmox kernel from the @KERNEL_VER@ series.

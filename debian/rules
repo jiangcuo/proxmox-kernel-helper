@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+debian/control: $(wildcard debian/*.in)
+	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' < debian/postrm.in > debian/pve-kernel-${KERNEL_VER}.postrm
+	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' -e 's/@KERNEL_VER@/${KERNEL_VER}/g' < debian/postinst.in > debian/pve-kernel-${KERNEL_VER}.postinst
+	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' -e 's/@KERNEL_VER@/${KERNEL_VER}/g' < debian/control.in > debian/control
+
+
+install:
+	dh_installdocs -A debian/SOURCE debian/copyright
+	dh_installchangelogs
+	dh_strip_nondeterminism
+	dh_compress
+	dh_fixperms
+
+binary: install
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+.PHONY: build clean
+build clean:
