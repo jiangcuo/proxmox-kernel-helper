@@ -1,3 +1,9 @@
+pve-kernel-4.15 (5.1-2) unstable; urgency=medium
+
+  * ABI bump to 4.15.10-1-pve
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 21 Mar 2018 10:42:11 +0100
+
 pve-kernel-4.15 (5.1-1) unstable; urgency=medium
 
   * add new meta packages pve-kernel-4.15 and pve-headers-4.15
