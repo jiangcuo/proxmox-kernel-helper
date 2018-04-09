@@ -1,3 +1,9 @@
+pve-kernel-4.13 (5.1-44) unstable; urgency=medium
+
+  * ABI bump to 4.13.16-2-pve
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 9 Apr 2018 11:32:44 +0200
+
 pve-kernel-4.13 (5.1-43) unstable; urgency=medium
 
   * ABI bump to 4.13.16-1-pve
