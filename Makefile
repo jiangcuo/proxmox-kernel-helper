@@ -1,8 +1,8 @@
 RELEASE=5.2
-PKGREL=11
+PKGREL=12
 
 export KERNEL_VER=4.15
-export KERNEL_ABI=4.15.18-8-pve
+export KERNEL_ABI=4.15.18-9-pve
 
 PACKAGE=pve-kernel-${KERNEL_VER}
 
