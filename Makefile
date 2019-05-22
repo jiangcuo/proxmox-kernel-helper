@@ -1,5 +1,4 @@
-RELEASE=5.4
-PKGREL=3
+include /usr/share/dpkg/pkg-info.mk
 
 export KERNEL_VER=4.15
 export KERNEL_ABI=4.15.18-15-pve
@@ -8,8 +7,8 @@ PACKAGE=pve-kernel-${KERNEL_VER}
 
 GITVERSION:=$(shell git rev-parse HEAD)
 
-KERNEL_DEB=pve-kernel-${KERNEL_VER}_${RELEASE}-${PKGREL}_all.deb
-HEADERS_DEB=pve-headers-${KERNEL_VER}_${RELEASE}-${PKGREL}_all.deb
+KERNEL_DEB=pve-kernel-${KERNEL_VER}_${DEB_VERSION_UPSTREAM_REVISION}_all.deb
+HEADERS_DEB=pve-headers-${KERNEL_VER}_${DEB_VERSION_UPSTREAM_REVISION}_all.deb
 
 BUILD_DIR=build
 
@@ -26,16 +25,13 @@ ${KERNEL_DEB}: debian
 	cd ${BUILD_DIR}; debian/rules debian/control
 	echo "git clone git://git.proxmox.com/git/pve-kernel-meta.git\\ngit checkout ${GITVERSION}" > ${BUILD_DIR}/debian/SOURCE
 	cd ${BUILD_DIR}; dpkg-buildpackage -b -uc -us
-	lintian ${KERNEL_DEB}
-	lintian ${HEADERS_DEB}
+	lintian ${KERNEL_DEB} ${HEADERS_DEB}
 
 .PHONY: upload
 upload: ${DEBS}
-	tar cf - ${DEBS}|ssh repoman@repo.proxmox.com -- upload --product pve,pmg --dist stretch --arch ${ARCH}
+	tar cf - ${DEBS}|ssh repoman@repo.proxmox.com -- upload --product pve,pmg --dist stretch
 
-.PHONY: distclean
+.PHONY: clean distclean
 distclean: clean
-
-.PHONY: clean
 clean:
 	rm -rf *~ ${BUILD_DIR} *.deb *.dsc *.changes *.buildinfo
