@@ -29,7 +29,7 @@ ${KERNEL_DEB}: debian
 
 .PHONY: upload
 upload: ${DEBS}
-	tar cf - ${DEBS}|ssh repoman@repo.proxmox.com -- upload --product pve,pmg --dist stretch
+	tar cf - ${DEBS}|ssh repoman@repo.proxmox.com -- upload --product pve,pmg --dist buster
 
 .PHONY: clean distclean
 distclean: clean
