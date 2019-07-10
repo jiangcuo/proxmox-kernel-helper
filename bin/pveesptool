@@ -153,6 +153,7 @@ usage() {
 	warn "       $0 format <partition> [--force]"
 	warn "       $0 init <partition>"
 	warn "       $0 refresh"
+	warn "       $0 help"
 }
 
 help() {
