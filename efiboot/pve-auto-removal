@@ -1,7 +1,7 @@
 #! /bin/sh
 set -e
 
-. /usr/share/proxmox-ve/scripts/functions
+. /usr/share/pve-kernel-helper/scripts/functions
 
 eval "$(apt-config shell APT_CONF_D Dir::Etc::parts/d)"
 test -n "${APT_CONF_D}" || APT_CONF_D="/etc/apt/apt.conf.d"

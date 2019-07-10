@@ -39,7 +39,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM QUIT
 
-. /usr/share/proxmox-ve/scripts/functions
+. /usr/share/pve-kernel-helper/scripts/functions
 
 BOOT_KVERS="$(boot_kernel_list "$@")"
 
