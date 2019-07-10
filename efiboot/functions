@@ -1,6 +1,13 @@
 #! /bin/sh
 set -e
 
+ESP_LIST="/etc/kernel/pve-efiboot-uuids"
+ESPTYPE='c12a7328-f81f-11d2-ba4b-00a0c93ec93b'
+
+# relative to the ESP mountpoint
+PMX_ESP_DIR="EFI/proxmox"
+PMX_LOADER_CONF="loader/loader.conf"
+
 # adapted from /etc/kernel/postinst.d/apt-auto-removal as present in
 # debian's apt package:
 #

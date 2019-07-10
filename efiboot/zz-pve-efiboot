@@ -5,9 +5,6 @@ set -e
 # /usr/lib/kernel/install.d/90-loaderentry.install, see also
 # https://kernel-team.pages.debian.net/kernel-handbook/ch-update-hooks.html
 
-# relative to the ESP mountpoint
-ESP_LIST="/etc/kernel/pve-efiboot-uuids"
-PMX_ESP_DIR="EFI/proxmox"
 
 MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
 
@@ -49,7 +46,7 @@ potential_esps(){
 
 update_esps() {
 	if [ ! -f "${ESP_LIST}" ]; then
-	    warn "No ${ESP_LIST} found cannot update installed kernels - exiting"
+	    warn "No ${ESP_LIST} found, cannot update installed kernels - exiting"
 	    esps="$(potential_esps)"
 	    warn "add the UUIDs of one of the following devices to ${ESP_LIST}:"
 	    warn "${esps}"
@@ -71,12 +68,12 @@ update_esps() {
 		mkdir -p "${mountpoint}"
 		mount "${path}" "${mountpoint}" || \
 			{ warn "mount of ${path} failed - skipping"; continue; }
-		if [ ! -f "${mountpoint}/loader/loader.conf" ]; then
+		if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
 			warn "${path} contains no loader.conf - skipping"
 			continue
 		fi
-		if [ ! -d "${mountpoint}/EFI/proxmox" ]; then
-			warn "${path} contains no EFI/proxmox - skipping"
+		if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
+			warn "${path}/$PMX_ESP_DIR does not exist- skipping"
 			continue
 		fi
 
