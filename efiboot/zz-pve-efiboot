@@ -20,7 +20,8 @@ cleanup() {
 	for mount in "${MOUNTROOT}"/* ; do
 		if echo "${mount}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}' && \
 			mountpoint -q "${mount}"; then
-			umount "${mount}"
+			umount "${mount}" || \
+			    { warn "umount of ${mount} failed - failure"; exit 0; }
 		fi
 	done
 
@@ -62,7 +63,8 @@ update_esps() {
 		fi
 
 		mountpoint="${MOUNTROOT}/${uuid}"
-		mkdir -p "${mountpoint}"
+		mkdir -p "${mountpoint}" || \
+			{ warn "creation of mountpoint ${mountpoint} failed - skipping"; continue; }
 		mount "${path}" "${mountpoint}" || \
 			{ warn "mount of ${path} failed - skipping"; continue; }
 		if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
@@ -79,9 +81,9 @@ update_esps() {
 		remove_old_kernels "${mountpoint}"
 
 		umount "${mountpoint}" || \
-			{ warn "umount of ${path} failed - failure"; exit 2; }
+			{ warn "umount of ${path} failed - failure"; exit 0; }
 
-		rmdir "${mountpoint}"
+		rmdir "${mountpoint}" || true
 	done
 
 }
