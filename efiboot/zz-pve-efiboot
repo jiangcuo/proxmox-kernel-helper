@@ -32,13 +32,6 @@ trap cleanup EXIT INT TERM QUIT
 
 BOOT_KVERS="$(boot_kernel_list "$@")"
 
-if [ -f /etc/kernel/cmdline ]; then
-	CMDLINE="$(cat /etc/kernel/cmdline)"
-else
-	warn "No /etc/kernel/cmdline found - falling back to /proc/cmdline"
-	CMDLINE="$(cat /proc/cmdline)"
-fi
-
 potential_esps(){
 	lsblk --list -o PATH,UUID,FSTYPE,PARTTYPE,MOUNTPOINT |
 	awk '$3 == "vfat" && $4 == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" && $5 == "" {print $1,$2}'
@@ -52,6 +45,13 @@ update_esps() {
 	    warn "${esps}"
 	    exit 1
 	fi
+	if [ -f /etc/kernel/cmdline ]; then
+		CMDLINE="$(cat /etc/kernel/cmdline)"
+	else
+		warn "No /etc/kernel/cmdline found - falling back to /proc/cmdline"
+		CMDLINE="$(cat /proc/cmdline)"
+	fi
+
 	cat "${ESP_LIST}" | while IFS= read -r uuid; do
 		if ! (echo "${uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
 			warn "WARN: ${uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
