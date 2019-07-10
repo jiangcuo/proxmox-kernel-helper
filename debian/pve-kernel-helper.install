@@ -1,4 +1,4 @@
 etc/kernel/postinst.d/*
 etc/kernel/postrm.d/*
-usr/sbin/pveesptool
+usr/sbin/pve-efiboot-tool
 usr/share/pve-kernel-helper/scripts/functions
