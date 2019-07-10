@@ -10,15 +10,7 @@ PMX_ESP_DIR="EFI/proxmox"
 
 MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
 
-# TODO:
-# - no mount on /boot/efi - mount all available esps on /var/tmp/esp-UUID
-#   and copy the stuff for all of them (or copy onto first and sync for the
-#   others - or don't copy if unchanged
-# - trap error-conditions and make sure stuff gets unmounted
 # - cleanup - gently delete all kernels not in kernel-keep-list
-
-#[ -f "${LOADERDIR}/loader.conf" ] || exit 0
-#[ -d "${ESPMOUNT}/${PMX_ESP_DIR}" ] || exit 0
 
 if command -V systemd-detect-virt >/dev/null 2>&1 &&
 	systemd-detect-virt --quiet --container; then
