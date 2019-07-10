@@ -6,6 +6,7 @@ set -e
 # https://kernel-team.pages.debian.net/kernel-handbook/ch-update-hooks.html
 
 # relative to the ESP mountpoint
+ESP_LIST="/etc/kernel/pve-efiboot-uuids"
 PMX_ESP_DIR="EFI/proxmox"
 
 MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
@@ -42,19 +43,35 @@ else
 	CMDLINE="$(cat /proc/cmdline)"
 fi
 
+potential_esps(){
+	lsblk --list -o PATH,UUID,FSTYPE,PARTTYPE,MOUNTPOINT |
+	awk '$3 == "vfat" && $4 == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" && $5 == "" {print $1,$2}'
+}
 
 update_esps() {
-	esps="$(lsblk --list -o PATH,UUID,FSTYPE,PARTTYPE,MOUNTPOINT |
-		awk -v OFS=';' '$3 == "vfat" && $4 == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" && $5 == "" {print $1,$2}')"
+	if [ ! -f "${ESP_LIST}" ]; then
+	    warn "No ${ESP_LIST} found cannot update installed kernels - exiting"
+	    esps="$(potential_esps)"
+	    warn "add the UUIDs of one of the following devices to ${ESP_LIST}:"
+	    warn "${esps}"
+	    exit 1
+	fi
+	cat "${ESP_LIST}" | while IFS= read -r uuid; do
+		if ! (echo "${uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
+			warn "WARN: ${uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
+			continue
+		fi
 
-	for esp in ${esps}; do
-		path="$(echo "${esp}" | cut -d ';' -f1)"
-		uuid="$(echo "${esp}" | cut -d ';' -f2)"
+		path="/dev/disk/by-uuid/$uuid"
+		if [ ! -e "${path}" ]; then
+			warn "WARN: ${path} does not exist - clean ${ESP_LIST}! - skipping"
+			continue
+		fi
+
 		mountpoint="${MOUNTROOT}/${uuid}"
-
 		mkdir -p "${mountpoint}"
 		mount "${path}" "${mountpoint}" || \
-			{ warn "mount of ${esp} failed - skipping"; continue; }
+			{ warn "mount of ${path} failed - skipping"; continue; }
 		if [ ! -f "${mountpoint}/loader/loader.conf" ]; then
 			warn "${path} contains no loader.conf - skipping"
 			continue
@@ -69,7 +86,7 @@ update_esps() {
 		remove_old_kernels "${mountpoint}"
 
 		umount "${mountpoint}" || \
-			{ warn "umount of ${esp} failed - failure"; exit 2; }
+			{ warn "umount of ${path} failed - failure"; exit 2; }
 
 		rmdir "${mountpoint}"
 	done
