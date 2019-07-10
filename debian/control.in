@@ -35,6 +35,8 @@ Depends: dosfstools,
          systemd,
          udev,
          ${misc:Depends},
+Breaks: proxmox-ve (<< 6.0-2~)
+Replaces: proxmox-ve (<< 6.0-2~)
 Description: Function for various kernel maintenance tasks.
  .
  This package includes kernel-hooks for marking certain kernels as
