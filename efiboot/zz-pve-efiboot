@@ -39,11 +39,8 @@ potential_esps(){
 
 update_esps() {
 	if [ ! -f "${ESP_LIST}" ]; then
-	    warn "No ${ESP_LIST} found, cannot update installed kernels - exiting"
-	    esps="$(potential_esps)"
-	    warn "add the UUIDs of one of the following devices to ${ESP_LIST}:"
-	    warn "${esps}"
-	    exit 1
+	    warn "No ${ESP_LIST} found, skipping ESP sync."
+	    exit 0
 	fi
 	if [ -f /etc/kernel/cmdline ]; then
 		CMDLINE="$(cat /etc/kernel/cmdline)"
