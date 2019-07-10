@@ -3,8 +3,6 @@ include /usr/share/dpkg/pkg-info.mk
 export KERNEL_VER=5.0
 export KERNEL_ABI=5.0.15-1-pve
 
-PACKAGE=pve-kernel-${KERNEL_VER}
-
 GITVERSION:=$(shell git rev-parse HEAD)
 
 KERNEL_DEB=pve-kernel-${KERNEL_VER}_${DEB_VERSION_UPSTREAM_REVISION}_all.deb
@@ -15,6 +13,8 @@ BUILD_DIR=build
 DEBS=${KERNEL_DEB} ${HEADERS_DEB}
 
 all: deb
+
+.PHONY: deb
 deb: ${DEBS}
 
 ${HEADERS_DEB}: ${KERNEL_DEB}
