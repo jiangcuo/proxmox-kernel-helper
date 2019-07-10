@@ -25,3 +25,17 @@ Depends: pve-firmware,
 Description: Latest Proxmox VE Kernel Image
  This is a virtual package which will install the latest available
  proxmox kernel from the @KERNEL_VER@ series.
+
+Package: pve-kernel-helper
+Architecture: all
+Section: admin
+Priority: optional
+Depends: dosfstools,
+         gdisk,
+         systemd,
+         udev,
+         ${misc:Depends},
+Description: Function for various kernel maintenance tasks.
+ .
+ This package includes kernel-hooks for marking certain kernels as
+ NeverAutoRemove and helpers for systemd-boot

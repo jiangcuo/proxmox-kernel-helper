@@ -1,0 +1,219 @@
+#!/bin/sh
+
+set -e
+
+. /usr/share/pve-kernel-helper/scripts/functions
+
+
+_get_partition_info() {
+	if [ ! -e "$1" ]; then
+		warn "E: '$1' does not exist!"
+		exit 1
+	fi
+	bdev=$(realpath "$1")
+	if [ ! -b "$bdev" ]; then
+		warn "E: '$bdev' is not a block device!"
+		exit 1
+	fi
+
+	bdev_info=$( \
+	          lsblk \
+	          --bytes \
+	          --pairs \
+	          -o 'UUID,SIZE,FSTYPE,PARTTYPE,PKNAME,MOUNTPOINT' \
+	          "$bdev" \
+	          )
+	if [ -z "$bdev_info" ]; then
+		warn "E: unable to get information about block device '$1'!"
+		exit 1
+	fi
+
+	count=$(echo "$bdev_info" | grep -c '^')
+	if [ "$count" -ne '1' ]; then
+		echo "$bdev_info"
+		warn "E: block device '$1' has children!"
+		exit 1
+	fi
+
+	echo "$bdev_info"
+	eval "$bdev_info"
+
+	if [ -z "$PKNAME" ]; then
+		warn "E: cannot determine parent device of '$1' - please provide a partition, not a full disk."
+		exit 1
+	fi
+
+	if [ -n "$SIZE" ] && [ "$SIZE" -lt 268435456 ]; then
+		warn "E: '$1' is too small (<256M)."
+		exit 1
+	fi
+
+	if [ -n "$MOUNTPOINT" ]; then
+		warn "E: '$1' is mounted on '$MOUNTPOINT' - exiting."
+		exit 1
+	fi
+}
+
+format() {
+	part="$1"
+	force="$2"
+
+	_get_partition_info "$part"
+
+	if [ -n "$FSTYPE" ]; then
+		if [ -z "$force" ] || [ "$force" != '--force' ]; then
+			warn "E: '$part' contains a filesystem ('$FSTYPE') - exiting (use --force to override)"
+			exit 1
+		fi
+	fi
+
+	part_basename=$(basename "$part")
+	if [ -z "$part_basename" ]; then
+		warn "E: unable to determine basename of '$part'"
+		exit 1
+	fi
+
+	part_num=$(cat /sys/block/"$PKNAME"/"$part_basename"/partition)
+	if [ -z "$part_num" ]; then
+		warn "E: unable to determine partition number of '$part'"
+		exit 1
+	fi
+
+	if [ -z "$PARTTYPE" ] || [ "$PARTTYPE" != "$ESPTYPE" ]; then
+		echo "Setting partition type of '$part' to '$ESPTYPE'.."
+		sgdisk "-t$part_num:$ESPTYPE" "/dev/$PKNAME"
+		echo "Calling 'udevadm settle'.."
+		udevadm settle --timeout=5
+	fi
+
+	echo "Formatting '$part' as vfat.."
+	mkfs.vfat -F 32 "$part"
+	echo "Done."
+	exit 0
+}
+
+init() {
+	part="$1"
+
+	_get_partition_info "$part"
+
+	if [ -z "$PARTTYPE" ] || [ "$PARTTYPE" != "$ESPTYPE" ]; then
+		warn "E: '$part' has wrong partition type (!= $ESPTYPE)."
+		exit 1
+	fi
+
+	if [ -z "$FSTYPE" ] || [ "$FSTYPE" != 'vfat' ]; then
+		warn "E: '$part' has wrong filesystem (!= vfat)."
+		exit 1
+	fi
+
+	if [ -z "$UUID" ]; then
+		warn "E: '$part' has no UUID set, required for mounting."
+		exit 1
+	fi
+
+	esp_mp="/var/tmp/espmounts/$UUID"
+
+	mkdir -p "$esp_mp"
+	echo "Mounting '$part' on '$esp_mp'."
+	mount -t vfat "$part" "$esp_mp"
+
+	echo "Installing systemd-boot.."
+	mkdir -p "$esp_mp/$PMX_ESP_DIR"
+	bootctl --path "$esp_mp" install
+
+	echo "Configuring systemd-boot.."
+	echo "timeout 3" > "$esp_mp/$PMX_LOADER_CONF.tmp"
+	echo "default proxmox-*" >> "$esp_mp/$PMX_LOADER_CONF.tmp"
+	mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
+	echo "Unmounting '$part'."
+	umount "$part"
+
+	echo "Adding '$part' to list of synced ESPs.."
+	if [ -e "$ESP_LIST" ]; then
+		cp "$ESP_LIST" "$ESP_LIST.new"
+	fi
+	echo "$UUID" >> "$ESP_LIST.new"
+	sort -uo "$ESP_LIST.new" "$ESP_LIST.new"
+	mv "$ESP_LIST.new" "$ESP_LIST"
+
+	echo "Refreshing kernels and initrds.."
+	refresh
+}
+
+refresh() {
+	hookscript='/etc/kernel/postinst.d/zz-pve-efiboot'
+	echo "Running hook script '$hookscript'.."
+	exec $hookscript
+}
+
+usage() {
+	warn "USAGE: $0 <commands> [ARGS]"
+	warn ""
+	warn "       $0 format <partition> [--force]"
+	warn "       $0 init <partition>"
+	warn "       $0 refresh"
+}
+
+help() {
+	echo "USAGE: $0 format <partition> [--force]"
+	echo ""
+	echo "    format <partition> as EFI system partition. Use --force to format even if <partition> is currently in use."
+	echo ""
+	echo "USAGE: $0 init <partition>"
+	echo ""
+	echo "    initialize EFI system partition at <partition> for automatic synchronization of pve-kernels and their associated initrds."
+	echo ""
+	echo "USAGE: $0 refresh"
+	echo ""
+	echo "    refresh all configured EFI system partitions."
+	echo ""
+}
+
+if [ -z "$1" ]; then
+    usage
+    exit 0
+fi
+
+case "$1" in
+	'format')
+		shift
+		if [ -z "$1"  ]; then
+			warn "E: <partition> is mandatory."
+			warn ""
+			usage
+			exit 1
+		fi
+		format "$@"
+		exit 0
+	;;
+	'init')
+		shift
+		if [ -z "$1"  ]; then
+			warn "E: <partition> is mandatory."
+			warn ""
+			usage
+			exit 1
+		fi
+		init "$@"
+		exit 0
+	;;
+	'refresh')
+		shift
+		refresh
+		exit 0
+	;;
+	'help')
+		shift
+		help
+		exit 0
+	;;
+	*)
+		warn "Invalid/unknown command '$1'."
+		warn ""
+		usage
+		exit 1
+	;;
+esac
+
+exit 1
