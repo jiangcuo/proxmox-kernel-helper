@@ -1,0 +1,156 @@
+#! /bin/sh
+set -e
+
+# adapted from '/etc/kernel/postinst.d/zz-update-grub and
+# /usr/lib/kernel/install.d/90-loaderentry.install, see also
+# https://kernel-team.pages.debian.net/kernel-handbook/ch-update-hooks.html
+
+# relative to the ESP mountpoint
+PMX_ESP_DIR="EFI/proxmox"
+
+MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
+
+# TODO:
+# - no mount on /boot/efi - mount all available esps on /var/tmp/esp-UUID
+#   and copy the stuff for all of them (or copy onto first and sync for the
+#   others - or don't copy if unchanged
+# - trap error-conditions and make sure stuff gets unmounted
+# - cleanup - gently delete all kernels not in kernel-keep-list
+
+#[ -f "${LOADERDIR}/loader.conf" ] || exit 0
+#[ -d "${ESPMOUNT}/${PMX_ESP_DIR}" ] || exit 0
+
+if command -V systemd-detect-virt >/dev/null 2>&1 &&
+	systemd-detect-virt --quiet --container; then
+	exit 0
+fi
+
+cleanup() {
+
+	warn "unmounting ESPs"
+	for mount in "${MOUNTROOT}"/* ; do
+		if echo "${mount}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}' && \
+			mountpoint -q "${mount}"; then
+			umount "${mount}"
+		fi
+	done
+
+}
+
+trap cleanup EXIT INT TERM QUIT
+
+. /usr/share/proxmox-ve/scripts/functions
+
+BOOT_KVERS="$(boot_kernel_list "$@")"
+
+if [ -f /etc/kernel/cmdline ]; then
+	CMDLINE="$(cat /etc/kernel/cmdline)"
+else
+	warn "No /etc/kernel/cmdline found - falling back to /proc/cmdline"
+	CMDLINE="$(cat /proc/cmdline)"
+fi
+
+
+update_esps() {
+	esps="$(lsblk --list -o PATH,UUID,FSTYPE,PARTTYPE,MOUNTPOINT |
+		awk -v OFS=';' '$3 == "vfat" && $4 == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" && $5 == "" {print $1,$2}')"
+
+	for esp in ${esps}; do
+		path="$(echo "${esp}" | cut -d ';' -f1)"
+		uuid="$(echo "${esp}" | cut -d ';' -f2)"
+		mountpoint="${MOUNTROOT}/${uuid}"
+
+		mkdir -p "${mountpoint}"
+		mount "${path}" "${mountpoint}" || \
+			{ warn "mount of ${esp} failed - skipping"; continue; }
+		if [ ! -f "${mountpoint}/loader/loader.conf" ]; then
+			warn "${path} contains no loader.conf - skipping"
+			continue
+		fi
+		if [ ! -d "${mountpoint}/EFI/proxmox" ]; then
+			warn "${path} contains no EFI/proxmox - skipping"
+			continue
+		fi
+
+		warn "Copying and configuring kernels on ${path}"
+		copy_and_config_kernels "${mountpoint}"
+		remove_old_kernels "${mountpoint}"
+
+		umount "${mountpoint}" || \
+			{ warn "umount of ${esp} failed - failure"; exit 2; }
+
+		rmdir "${mountpoint}"
+	done
+
+}
+
+copy_and_config_kernels() {
+	esp="$1"
+
+
+	for kver in ${BOOT_KVERS}; do
+
+		linux_image="/boot/vmlinuz-${kver}"
+		initrd="/boot/initrd.img-${kver}"
+
+		if [ ! -f "${linux_image}" ]; then
+			warn "No linux-image ${linux_image} found - skipping"
+			continue
+		fi
+		if [ ! -f "${initrd}" ]; then
+			warn "No initrd-image ${initrd} found - skipping"
+			continue
+		fi
+
+		warn "	Copying kernel and creating boot-entry for ${kver}"
+		KERNEL_ESP_DIR="${PMX_ESP_DIR}/${kver}"
+		KERNEL_LIVE_DIR="${esp}/${KERNEL_ESP_DIR}"
+		mkdir -p "${KERNEL_LIVE_DIR}"
+		cp -u --preserve=timestamps "${linux_image}" "${KERNEL_LIVE_DIR}/"
+		cp -u --preserve=timestamps "${initrd}" "${KERNEL_LIVE_DIR}/"
+
+		# create loader entry
+		cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
+			title    Proxmox
+			version  ${kver}
+			options   ${CMDLINE}
+			linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
+			initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
+		EOF
+	done
+
+}
+
+remove_old_kernels() {
+	esp="$1"
+
+	for kerneldir in "${esp}/${PMX_ESP_DIR}"/*; do
+		if [ ! -d "${kerneldir}" ]; then
+			warn "	${kerneldir} is not a directory - skipping"
+			continue
+		fi
+
+		kver="$(echo "${kerneldir}" | sed -r "s#^${esp}/${PMX_ESP_DIR}/(.+)\$#\\1#")"
+
+		echo "${BOOT_KVERS}" | grep -q "${kver}" && continue;
+		warn "	Removing old version ${kver}"
+		rm -rf "${kerneldir}"
+		rm -f "${esp}/loader/entries/proxmox-${kver}.conf"
+	done
+
+}
+
+set -- $DEB_MAINT_PARAMS
+mode="${1#\'}"
+mode="${mode%\'}"
+case $0:$mode in
+	# Only run on postinst configure and postrm remove, to avoid wasting
+	# time by calling update-grub multiple times on upgrade and removal.
+	# Also run if we have no DEB_MAINT_PARAMS, in order to work with old
+	# kernel packages.
+	*/postinst.d/*:|*/postinst.d/*:configure|*/postrm.d/*:|*/postrm.d/*:remove)
+	update_esps
+	;;
+esac
+
+exit 0

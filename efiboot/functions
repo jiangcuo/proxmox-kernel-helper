@@ -1,0 +1,58 @@
+#! /bin/sh
+set -e
+
+# adapted from /etc/kernel/postinst.d/apt-auto-removal as present in
+# debian's apt package:
+#
+# Mark as not-for-autoremoval those kernel packages that are:
+#  - the currently booted version
+#  - the kernel version we've been called for
+#  - the latest kernel version (as determined by debian version number)
+#  - the second-latest kernel version
+#  - the latest kernel version of each series (e.g. 4.13, 4.15, 5.0) by
+#    marking the meta-packages
+
+kernel_keep_versions() {
+	eval "$(apt-config shell DPKG Dir::bin::dpkg/f)"
+	test -n "$DPKG" || DPKG="/usr/bin/dpkg"
+
+	list="$("${DPKG}" -l | awk '/^[ih][^nc][ ]+pve-kernel-[0-9]+\./ && $2 !~ /-dbg(:.*)?$/ && $2 !~ /-dbgsym(:.*)?$/ { print $2; }' \
+	   | sed -e 's#^pve-kernel-##' -e 's#:[^:]\+ # #')"
+
+	sorted_list="$(echo "$list" | sort --unique --reverse --version-sort)"
+
+	[ -n "$1" ] && install_version="$1"
+
+	running_version="$(uname -r | tr 'A-Z' 'a-z')"
+
+	# ignore the currently running version if attempting a reproducible build
+	if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+		running_version=""
+	fi
+
+	latest_2_versions="$(echo "$sorted_list" | grep -E '^[^ ]+-pve' | head -n2 )"
+
+	series_metapackages="$(echo "$sorted_list" | grep -Ev '^[^ ]+-pve')"
+
+	kernels="$(cat <<-EOF
+		$running_version
+		$install_version
+		$latest_2_versions
+		$series_metapackages
+		EOF
+	)"
+
+	echo "$kernels" | sort -u | sed -e '/^$/ d'
+}
+
+#bootable kernels are the same as the no_autoremove ones without the meta-package
+boot_kernel_list() {
+	list="$(kernel_keep_versions "$@")"
+
+	echo "$list" | grep -E '^[^ ]+-pve'
+
+}
+
+warn() {
+	echo "$@" 1>&2
+}
