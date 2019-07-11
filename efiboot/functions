@@ -63,3 +63,12 @@ boot_kernel_list() {
 warn() {
 	echo "$@" 1>&2
 }
+
+reexec_in_mountns() {
+	if [ -z "$PVE_EFIBOOT_UNSHARED" ]; then
+		export PVE_EFIBOOT_UNSHARED=1
+		echo "Re-executing '$0' in new private mount namespace.."
+		unshare --mount --propagation private "$0" "$@"
+		exit 0
+	fi
+}
