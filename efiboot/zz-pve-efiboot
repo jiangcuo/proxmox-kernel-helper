@@ -151,10 +151,12 @@ case $0:$mode in
 	# Also run if we have no DEB_MAINT_PARAMS, in order to work with old
 	# kernel packages.
 	*/postinst.d/*:|*/postinst.d/*:configure)
+		reexec_in_mountns "$@"
 		BOOT_KVERS="$(boot_kernel_list "$@")"
 		update_esps
 	;;
 	 */postrm.d/*:|*/postrm.d/*:remove)
+		reexec_in_mountns "$@"
 		# no newly installed kernel
 		BOOT_KVERS="$(boot_kernel_list)"
 		update_esps
