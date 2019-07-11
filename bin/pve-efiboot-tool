@@ -189,6 +189,7 @@ case "$1" in
 		exit 0
 	;;
 	'init')
+		reexec_in_mountns "$@"
 		shift
 		if [ -z "$1"  ]; then
 			warn "E: <partition> is mandatory."
