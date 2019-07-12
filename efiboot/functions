@@ -76,3 +76,16 @@ reexec_in_mountns() {
 		exit 0
 	fi
 }
+
+loop_esp_list() {
+	if [ ! -e ${ESP_LIST} ]; then
+		return 2
+	fi
+
+	cat "${ESP_LIST}" | while IFS= read -r curr_uuid; do
+		if [ -z "$curr_uuid" ]; then
+			continue
+		fi
+		"$@"
+	done
+}
