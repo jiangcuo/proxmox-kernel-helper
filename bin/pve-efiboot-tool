@@ -234,6 +234,25 @@ remove_kernel() {
 	fi
 }
 
+list_kernels() {
+	boot_kernels="$(boot_kernel_list)"
+
+	if [ -e "$MANUAL_KERNEL_LIST" ]; then
+		manual_kernels="$(echo "$boot_kernels" | grep -Fx -f "$MANUAL_KERNEL_LIST")"
+		boot_kernels="$(echo "$boot_kernels" | grep -Fxv -f "$MANUAL_KERNEL_LIST")"
+	fi
+
+	if [ -z "$manual_kernels" ]; then
+		manual_kernels="None."
+	fi
+
+	echo "Manually selected kernels:"
+	echo "$manual_kernels"
+	echo ""
+	echo "Automatically selected kernels:"
+	echo "$boot_kernels"
+}
+
 usage() {
 	warn "USAGE: $0 <commands> [ARGS]"
 	warn ""
@@ -242,6 +261,7 @@ usage() {
 	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh"
 	warn "       $0 kernels <add|remove> <kernel-version>"
+	warn "       $0 kernels list"
 	warn "       $0 help"
 }
 
@@ -265,6 +285,10 @@ help() {
 	echo "USAGE: $0 kernels <add|remove> <kernel-version>"
 	echo ""
 	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
+	echo ""
+	echo "USAGE: $0 kernels list"
+	echo ""
+	echo "    list kernel versions currently selected for inclusion on ESPs."
 	echo ""
 }
 
@@ -323,6 +347,10 @@ case "$1" in
 			;;
 			'remove')
 				remove_kernel "$2"
+				exit 0
+			;;
+			'list')
+				list_kernels
 				exit 0
 			;;
 			*)
