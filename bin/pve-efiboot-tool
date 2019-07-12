@@ -195,9 +195,11 @@ clean() {
 }
 
 refresh() {
-	hookscript='/etc/kernel/postinst.d/zz-pve-efiboot'
-	echo "Running hook script '$hookscript'.."
-	exec $hookscript
+	hookscripts='pve-auto-removal zz-pve-efiboot'
+	for script in $hookscripts; do
+		echo "Running hook script '$script'.."
+		"/etc/kernel/postinst.d/$script"
+	done
 }
 
 add_kernel() {
