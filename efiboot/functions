@@ -67,8 +67,7 @@ kernel_keep_versions() {
 boot_kernel_list() {
 	list="$(kernel_keep_versions "$@")"
 
-	echo "$list" | grep -E '^[^ ]+-pve'
-
+	echo "$list" | grep -E '^[^ ]+-pve' || true
 }
 
 warn() {

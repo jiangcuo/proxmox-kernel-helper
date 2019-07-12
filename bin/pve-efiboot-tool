@@ -240,8 +240,8 @@ list_kernels() {
 	boot_kernels="$(boot_kernel_list)"
 
 	if [ -e "$MANUAL_KERNEL_LIST" ]; then
-		manual_kernels="$(echo "$boot_kernels" | grep -Fx -f "$MANUAL_KERNEL_LIST")"
-		boot_kernels="$(echo "$boot_kernels" | grep -Fxv -f "$MANUAL_KERNEL_LIST")"
+		manual_kernels="$(echo "$boot_kernels" | grep -Fx -f "$MANUAL_KERNEL_LIST" || true)"
+		boot_kernels="$(echo "$boot_kernels" | grep -Fxv -f "$MANUAL_KERNEL_LIST" || true)"
 	fi
 
 	if [ -z "$manual_kernels" ]; then

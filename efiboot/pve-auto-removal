@@ -26,7 +26,7 @@ generate_apt_config() {
 		cat <<-EOF
 		/* Debug information:
 		# dpkg list:
-		$(dpkg -l | grep 'pve-kernel')
+		$(dpkg -l | grep -F 'pve-kernel' || true)
 		# list of installed kernel packages:
 		$kernels
 		*/
