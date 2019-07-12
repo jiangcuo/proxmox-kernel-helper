@@ -48,42 +48,43 @@ update_esps() {
 		CMDLINE="$(cat /proc/cmdline)"
 	fi
 
-	cat "${ESP_LIST}" | while IFS= read -r uuid; do
-		if ! (echo "${uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
-			warn "WARN: ${uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
-			continue
-		fi
+	loop_esp_list update_esp_func
+}
 
-		path="/dev/disk/by-uuid/$uuid"
-		if [ ! -e "${path}" ]; then
-			warn "WARN: ${path} does not exist - clean ${ESP_LIST}! - skipping"
-			continue
-		fi
+update_esp_func() {
+	if ! (echo "${curr_uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
+		warn "WARN: ${curr_uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
+		return
+	fi
 
-		mountpoint="${MOUNTROOT}/${uuid}"
-		mkdir -p "${mountpoint}" || \
-			{ warn "creation of mountpoint ${mountpoint} failed - skipping"; continue; }
-		mount "${path}" "${mountpoint}" || \
-			{ warn "mount of ${path} failed - skipping"; continue; }
-		if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
-			warn "${path} contains no loader.conf - skipping"
-			continue
-		fi
-		if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
-			warn "${path}/$PMX_ESP_DIR does not exist- skipping"
-			continue
-		fi
+	path="/dev/disk/by-uuid/$curr_uuid"
+	if [ ! -e "${path}" ]; then
+		warn "WARN: ${path} does not exist - clean ${ESP_LIST}! - skipping"
+		return
+	fi
 
-		warn "Copying and configuring kernels on ${path}"
-		copy_and_config_kernels "${mountpoint}"
-		remove_old_kernels "${mountpoint}"
+	mountpoint="${MOUNTROOT}/${curr_uuid}"
+	mkdir -p "${mountpoint}" || \
+		{ warn "creation of mountpoint ${mountpoint} failed - skipping"; return; }
+	mount "${path}" "${mountpoint}" || \
+		{ warn "mount of ${path} failed - skipping"; return; }
+	if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
+		warn "${path} contains no loader.conf - skipping"
+		return
+	fi
+	if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
+		warn "${path}/$PMX_ESP_DIR does not exist- skipping"
+		return
+	fi
 
-		umount "${mountpoint}" || \
-			{ warn "umount of ${path} failed - failure"; exit 0; }
+	warn "Copying and configuring kernels on ${path}"
+	copy_and_config_kernels "${mountpoint}"
+	remove_old_kernels "${mountpoint}"
 
-		rmdir "${mountpoint}" || true
-	done
+	umount "${mountpoint}" || \
+		{ warn "umount of ${path} failed - failure"; exit 0; }
 
+	rmdir "${mountpoint}" || true
 }
 
 copy_and_config_kernels() {
