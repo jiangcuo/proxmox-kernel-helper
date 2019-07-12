@@ -200,6 +200,40 @@ refresh() {
 	exec $hookscript
 }
 
+add_kernel() {
+	ver="$1"
+
+	if [ -z "$ver" ]; then
+		warn "E: <kernel-version> is mandatory"
+		warn ""
+		exit 1
+	fi
+
+	if [ ! -e "/boot/vmlinuz-$ver" ]; then
+		warn "E: no kernel image found in /boot for '$ver', not adding."
+		exit 1
+	fi
+	_add_entry_to_list_file "$MANUAL_KERNEL_LIST" "$ver"
+	echo "Added kernel '$ver' to manual kernel list."
+}
+
+remove_kernel() {
+	ver="$1"
+
+	if [ -z "$ver" ]; then
+		warn "E: <kernel-version> is mandatory"
+		warn ""
+		exit 1
+	fi
+
+	if grep -sqFx "$ver" "$MANUAL_KERNEL_LIST"; then
+		_remove_entry_from_list_file "$MANUAL_KERNEL_LIST" "$ver"
+		echo "Removed kernel '$ver' from manual kernel list."
+	else
+		echo "Kernel '$ver' not found in manual kernel list."
+	fi
+}
+
 usage() {
 	warn "USAGE: $0 <commands> [ARGS]"
 	warn ""
@@ -207,6 +241,7 @@ usage() {
 	warn "       $0 init <partition>"
 	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh"
+	warn "       $0 kernels <add|remove> <kernel-version>"
 	warn "       $0 help"
 }
 
@@ -226,6 +261,10 @@ help() {
 	echo "USAGE: $0 refresh"
 	echo ""
 	echo "    refresh all configured EFI system partitions."
+	echo ""
+	echo "USAGE: $0 kernels <add|remove> <kernel-version>"
+	echo ""
+	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
 	echo ""
 }
 
@@ -267,6 +306,32 @@ case "$1" in
 		shift
 		refresh
 		exit 0
+	;;
+	'kernels')
+		shift
+		if [ -z "$1" ]; then
+			warn "E: subcommand is mandatory."
+			warn ""
+			usage
+			exit 1
+		fi
+		cmd="$1"
+		case "$cmd" in
+			'add')
+				add_kernel "$2"
+				exit 0
+			;;
+			'remove')
+				remove_kernel "$2"
+				exit 0
+			;;
+			*)
+				warn "E: invalid subcommand '$cmd'."
+				warn ""
+				usage
+				exit 1
+			;;
+		esac
 	;;
 	'help')
 		shift

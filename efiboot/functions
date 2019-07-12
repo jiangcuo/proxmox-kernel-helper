@@ -4,6 +4,8 @@ set -e
 ESP_LIST="/etc/kernel/pve-efiboot-uuids"
 ESPTYPE='c12a7328-f81f-11d2-ba4b-00a0c93ec93b'
 
+MANUAL_KERNEL_LIST="/etc/kernel/pve-efiboot-manual-kernels"
+
 # relative to the ESP mountpoint
 PMX_ESP_DIR="EFI/proxmox"
 PMX_LOADER_CONF="loader/loader.conf"
@@ -44,9 +46,14 @@ kernel_keep_versions() {
 	oldseries="$(echo "$series_metapackages" | head -n2 | tail -n1)"
 	oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-pve" | head -n1 )"
 
+	if [ -e "$MANUAL_KERNEL_LIST" ]; then
+		manual_kernels="$(cat "$MANUAL_KERNEL_LIST")"
+	fi
+
 	kernels="$(cat <<-EOF
 		$running_version
 		$install_version
+		$manual_kernels
 		$latest_2_versions
 		$series_metapackages
 		$oldseries_latest_kernel
