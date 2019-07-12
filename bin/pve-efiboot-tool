@@ -165,6 +165,35 @@ init() {
 	refresh
 }
 
+_clean_impl() {
+	if [ ! -e "/dev/disk/by-uuid/" ]; then
+		warn 'E: /dev/disk/by-uuid does not exist, aborting!'
+		exit 1
+	fi
+	echo -n "Checking whether ESP '$curr_uuid' exists.. "
+	if [ -e "/dev/disk/by-uuid/$curr_uuid" ]; then
+		echo "Found!"
+	else
+		echo "Not found!"
+		if [ -z "$dry_run" ] || [ "$dry_run" != '--dry-run' ]; then
+			_remove_entry_from_list_file "$ESP_LIST" "$curr_uuid"
+		fi
+	fi
+}
+
+clean() {
+	dry_run="$1"
+	rm -f "$ESP_LIST".tmp
+	loop_esp_list _clean_impl
+	if [ "$?" -eq 2 ]; then
+		warn "E: $ESP_LIST does not exist."
+		exit 1
+	fi
+	if [ -e "$ESP_LIST".tmp ]; then
+		mv "$ESP_LIST".tmp "$ESP_LIST"
+	fi
+}
+
 refresh() {
 	hookscript='/etc/kernel/postinst.d/zz-pve-efiboot'
 	echo "Running hook script '$hookscript'.."
@@ -176,6 +205,7 @@ usage() {
 	warn ""
 	warn "       $0 format <partition> [--force]"
 	warn "       $0 init <partition>"
+	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh"
 	warn "       $0 help"
 }
@@ -188,6 +218,10 @@ help() {
 	echo "USAGE: $0 init <partition>"
 	echo ""
 	echo "    initialize EFI system partition at <partition> for automatic synchronization of pve-kernels and their associated initrds."
+	echo ""
+	echo "USAGE: $0 clean [--dry-run]"
+	echo ""
+	echo "    remove no longer existing EFI system partition UUIDs from $ESP_LIST. Use --dry-run to only print outdated entries instead of removing them."
 	echo ""
 	echo "USAGE: $0 refresh"
 	echo ""
@@ -222,6 +256,11 @@ case "$1" in
 			exit 1
 		fi
 		init "$@"
+		exit 0
+	;;
+	'clean')
+		shift
+		clean "$@"
 		exit 0
 	;;
 	'refresh')
