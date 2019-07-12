@@ -41,11 +41,15 @@ kernel_keep_versions() {
 
 	series_metapackages="$(echo "$sorted_list" | grep -Ev '^[^ ]+-pve')"
 
+	oldseries="$(echo "$series_metapackages" | head -n2 | tail -n1)"
+	oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-pve" | head -n1 )"
+
 	kernels="$(cat <<-EOF
 		$running_version
 		$install_version
 		$latest_2_versions
 		$series_metapackages
+		$oldseries_latest_kernel
 		EOF
 	)"
 
