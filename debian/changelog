@@ -1,3 +1,14 @@
+pve-kernel-5.0 (6.0-5) pve pmg; urgency=medium
+
+  * efiboot: implement manual kernel list and tooling for it (add, list,
+    remove)
+
+  * efiboot: only keep last two series metapackages
+
+  * efiboot: make loader title product dependent
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 15 Jul 2019 14:40:13 +0200
+
 pve-kernel-5.0 (6.0-4) pve pmg; urgency=medium
 
   * execute ESP initialization and updates in it's own mount namespace
