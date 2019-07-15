@@ -64,7 +64,7 @@ update_esp_func() {
 
 	path="/dev/disk/by-uuid/$curr_uuid"
 	if [ ! -e "${path}" ]; then
-		warn "WARN: ${path} does not exist - clean ${ESP_LIST}! - skipping"
+		warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
 		return
 	fi
 
