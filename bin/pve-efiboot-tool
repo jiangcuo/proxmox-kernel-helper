@@ -262,8 +262,8 @@ usage() {
 	warn "       $0 init <partition>"
 	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh"
-	warn "       $0 kernels <add|remove> <kernel-version>"
-	warn "       $0 kernels list"
+	warn "       $0 kernel <add|remove> <kernel-version>"
+	warn "       $0 kernel list"
 	warn "       $0 help"
 }
 
@@ -284,12 +284,12 @@ help() {
 	echo ""
 	echo "    refresh all configured EFI system partitions."
 	echo ""
-	echo "USAGE: $0 kernels <add|remove> <kernel-version>"
+	echo "USAGE: $0 kernel <add|remove> <kernel-version>"
 	echo ""
 	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
 	echo "    NOTE: you need to manually run 'refresh' once you're finished with adding/removing kernels from the list"
 	echo ""
-	echo "USAGE: $0 kernels list"
+	echo "USAGE: $0 kernel list"
 	echo ""
 	echo "    list kernel versions currently selected for inclusion on ESPs."
 	echo ""
@@ -334,10 +334,10 @@ case "$1" in
 		refresh
 		exit 0
 	;;
-	'kernels')
+	'kernel'|'kernels')
 		shift
 		if [ -z "$1" ]; then
-			warn "E: subcommand is mandatory for 'kernels'."
+			warn "E: subcommand is mandatory for 'kernel'."
 			warn ""
 			usage
 			exit 1
@@ -357,7 +357,7 @@ case "$1" in
 				exit 0
 			;;
 			*)
-				warn "E: invalid 'kernels' subcommand '$cmd'."
+				warn "E: invalid 'kernel' subcommand '$cmd'."
 				warn ""
 				usage
 				exit 1
