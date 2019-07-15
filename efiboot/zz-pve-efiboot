@@ -31,6 +31,11 @@ trap cleanup EXIT INT TERM QUIT
 
 . /usr/share/pve-kernel-helper/scripts/functions
 
+LOADER_TITLE="Proxmox Virtual Environment"
+if [ -d /usr/share/doc/proxmox-mailgateway/ ]; then
+	LOADER_TITLE="Proxmox Mailgateway"
+fi
+
 potential_esps(){
 	lsblk --list -o PATH,UUID,FSTYPE,PARTTYPE,MOUNTPOINT |
 	awk '$3 == "vfat" && $4 == "c12a7328-f81f-11d2-ba4b-00a0c93ec93b" && $5 == "" {print $1,$2}'
@@ -114,7 +119,7 @@ copy_and_config_kernels() {
 
 		# create loader entry
 		cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
-			title    Proxmox
+			title    ${LOADER_TITLE}
 			version  ${kver}
 			options   ${CMDLINE}
 			linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
