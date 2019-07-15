@@ -216,7 +216,7 @@ add_kernel() {
 		exit 1
 	fi
 	_add_entry_to_list_file "$MANUAL_KERNEL_LIST" "$ver"
-	echo "Added kernel '$ver' to manual kernel list."
+	echo "Added kernel '$ver' to manual kernel list. Use the 'refresh' command to update the ESPs."
 }
 
 remove_kernel() {
@@ -230,7 +230,7 @@ remove_kernel() {
 
 	if grep -sqFx "$ver" "$MANUAL_KERNEL_LIST"; then
 		_remove_entry_from_list_file "$MANUAL_KERNEL_LIST" "$ver"
-		echo "Removed kernel '$ver' from manual kernel list."
+		echo "Removed kernel '$ver' from manual kernel list. Use the 'refresh' command to update the ESPs."
 	else
 		echo "Kernel '$ver' not found in manual kernel list."
 	fi
@@ -287,6 +287,7 @@ help() {
 	echo "USAGE: $0 kernels <add|remove> <kernel-version>"
 	echo ""
 	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
+	echo "    NOTE: you need to manually run 'refresh' once you're finished with adding/removing kernels from the list"
 	echo ""
 	echo "USAGE: $0 kernels list"
 	echo ""
@@ -336,7 +337,7 @@ case "$1" in
 	'kernels')
 		shift
 		if [ -z "$1" ]; then
-			warn "E: subcommand is mandatory."
+			warn "E: subcommand is mandatory for 'kernels'."
 			warn ""
 			usage
 			exit 1
@@ -356,7 +357,7 @@ case "$1" in
 				exit 0
 			;;
 			*)
-				warn "E: invalid subcommand '$cmd'."
+				warn "E: invalid 'kernels' subcommand '$cmd'."
 				warn ""
 				usage
 				exit 1
