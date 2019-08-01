@@ -1,0 +1,11 @@
+#! /bin/sh
+
+set -e
+
+# Only run the refresh if update-initramfs has been called manually.
+# If this script is being run as part of a post-kernel-install hook,
+# this variable will be set to 1 and we do nothing, since our pve-kernel
+# hooks will update the ESPs all at once anyway.
+if [ -z "$INITRAMFS_TOOLS_KERNEL_HOOK" ]; then
+	/usr/sbin/pve-efiboot-tool refresh --hook 'zz-pve-efiboot'
+fi
