@@ -195,10 +195,19 @@ clean() {
 }
 
 refresh() {
-	hookscripts='pve-auto-removal zz-pve-efiboot'
+	hookscripts="$1"
+	if [ -z "$hookscripts" ]; then
+		hookscripts='pve-auto-removal zz-pve-efiboot'
+	fi
+
 	for script in $hookscripts; do
-		echo "Running hook script '$script'.."
-		"/etc/kernel/postinst.d/$script"
+		scriptpath="/etc/kernel/postinst.d/$script"
+		if [ -f "$scriptpath" ] && [ -x "$scriptpath" ]; then
+			echo "Running hook script '$script'.."
+			$scriptpath
+		else
+			warn "Hook script '$script' not found or not executable, skipping."
+		fi
 	done
 }
 
@@ -261,7 +270,7 @@ usage() {
 	warn "       $0 format <partition> [--force]"
 	warn "       $0 init <partition>"
 	warn "       $0 clean [--dry-run]"
-	warn "       $0 refresh"
+	warn "       $0 refresh [--hook <name>]"
 	warn "       $0 kernel <add|remove> <kernel-version>"
 	warn "       $0 kernel list"
 	warn "       $0 help"
@@ -280,9 +289,9 @@ help() {
 	echo ""
 	echo "    remove no longer existing EFI system partition UUIDs from $ESP_LIST. Use --dry-run to only print outdated entries instead of removing them."
 	echo ""
-	echo "USAGE: $0 refresh"
+	echo "USAGE: $0 refresh [--hook <name>]"
 	echo ""
-	echo "    refresh all configured EFI system partitions."
+	echo "    refresh all configured EFI system partitions. Use --hook to only run the specified hook, omit to run all."
 	echo ""
 	echo "USAGE: $0 kernel <add|remove> <kernel-version>"
 	echo ""
@@ -331,7 +340,14 @@ case "$1" in
 	;;
 	'refresh')
 		shift
-		refresh
+		if [ "$#" -eq 0 ]; then
+			refresh
+		elif [ "$#" -eq 2 ] && [ "$1" = "--hook" ]; then
+			refresh "$2"
+		else
+			usage
+			exit 1
+		fi
 		exit 0
 	;;
 	'kernel'|'kernels')
