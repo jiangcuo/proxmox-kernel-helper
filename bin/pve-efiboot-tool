@@ -195,9 +195,16 @@ clean() {
 }
 
 refresh() {
-	hookscripts="$1"
-	if [ -z "$hookscripts" ]; then
-		hookscripts='pve-auto-removal zz-pve-efiboot'
+	hook=$1
+	hookscripts='pve-auto-removal zz-pve-efiboot'
+
+	if [ -n "$hook" ]; then
+	    if echo "$hookscripts" | grep -sqE "(^|[[:space:]]+)$hook([[:space:]]+|$)"; then
+		hookscripts="$hook"
+	    else
+		warn "E: '$hook' is not a valid hook script name.";
+		exit 1;
+	    fi
 	fi
 
 	for script in $hookscripts; do
