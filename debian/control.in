@@ -12,7 +12,7 @@ Section: admin
 Priority: optional
 Depends: pve-headers-@KERNEL_ABI@,
 Description: Latest Proxmox VE Kernel Headers
- This is a virtual package which will install the kernel headers
+ This is a metapackage which will install the kernel headers
  for the latest available proxmox kernel from the @KERNEL_VER@
  series.
 
@@ -23,7 +23,7 @@ Priority: optional
 Depends: pve-firmware,
          pve-kernel-@KERNEL_ABI@,
 Description: Latest Proxmox VE Kernel Image
- This is a virtual package which will install the latest available
+ This is a metapackage which will install the latest available
  proxmox kernel from the @KERNEL_VER@ series.
 
 Package: pve-kernel-helper
