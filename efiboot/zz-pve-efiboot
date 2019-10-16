@@ -50,7 +50,8 @@ update_esps() {
 		CMDLINE="$(cat /etc/kernel/cmdline)"
 	else
 		warn "No /etc/kernel/cmdline found - falling back to /proc/cmdline"
-		CMDLINE="$(cat /proc/cmdline)"
+		# remove initrd entries
+		CMDLINE="$(awk '{gsub(/\yinitrd=([0-9a-zA-Z\/\\._-])*\s*/,x)}1' /proc/cmdline)"
 	fi
 
 	loop_esp_list update_esp_func
