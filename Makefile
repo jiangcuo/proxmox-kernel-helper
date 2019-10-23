@@ -1,7 +1,7 @@
 include /usr/share/dpkg/pkg-info.mk
 
 export KERNEL_VER=5.3
-export KERNEL_ABI=5.3.1-1-pve
+export KERNEL_ABI=5.3.7-1-pve
 
 GITVERSION:=$(shell git rev-parse HEAD)
 
