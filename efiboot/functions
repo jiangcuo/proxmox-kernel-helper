@@ -14,7 +14,7 @@ PMX_LOADER_CONF="loader/loader.conf"
 # debian's apt package:
 #
 # Mark as not-for-autoremoval those kernel packages that are:
-#  - the currently booted version
+#  - the currently booted version, if still installed
 #  - the kernel version we've been called for
 #  - the latest kernel version (as determined by debian version number)
 #  - the second-latest kernel version
@@ -36,6 +36,11 @@ kernel_keep_versions() {
 
 	# ignore the currently running version if attempting a reproducible build
 	if [ -n "${SOURCE_DATE_EPOCH}" ]; then
+		running_version=""
+	elif [ ! -e "/boot/vmlinuz-$running_version" ]; then
+		# ignore the current version if it got removed, the "auto-remove" logic
+		# will not be affected, because either it is installed and thus we keep
+		# it in the list, or it's already removed anyway
 		running_version=""
 	fi
 
