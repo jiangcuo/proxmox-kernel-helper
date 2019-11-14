@@ -1,3 +1,14 @@
+pve-kernel-5.3 (6.0-12) pve pmg; urgency=medium
+
+  * ABI bump for 5.3.10-1-pve
+
+  * efiboot/autorm functions: ignore running kernel if it was removed
+
+  * improve compatibiltiy for #2403 fix by using perl to exclude initrd entries
+    from /proc/cmdline
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 14 Nov 2019 10:46:35 +0100
+
 pve-kernel-5.3 (6.0-11) pve pmg; urgency=medium
 
   * ABI bump for 5.3.7-1-pve
