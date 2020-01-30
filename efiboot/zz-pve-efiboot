@@ -34,6 +34,8 @@ trap cleanup EXIT INT TERM QUIT
 LOADER_TITLE="Proxmox Virtual Environment"
 if [ -d /usr/share/doc/proxmox-mailgateway/ ]; then
 	LOADER_TITLE="Proxmox Mailgateway"
+elif [ -d /usr/share/doc/proxmox-backup/ ]; then
+	LOADER_TITLE="Proxmox Backup Server"
 fi
 
 potential_esps(){
