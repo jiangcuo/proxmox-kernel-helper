@@ -256,7 +256,7 @@ list_kernels() {
 	boot_kernels="$(boot_kernel_list)"
 
 	if [ -e "$MANUAL_KERNEL_LIST" ]; then
-		manual_kernels="$(echo "$boot_kernels" | grep -Fx -f "$MANUAL_KERNEL_LIST" || true)"
+		manual_kernels="$(cat "$MANUAL_KERNEL_LIST" || true)"
 		boot_kernels="$(echo "$boot_kernels" | grep -Fxv -f "$MANUAL_KERNEL_LIST" || true)"
 	fi
 
