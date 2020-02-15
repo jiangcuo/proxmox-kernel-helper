@@ -1,3 +1,12 @@
+pve-kernel-5.3 (6.1-5) pve pmg; urgency=medium
+
+  * ABI bump for 5.3.18-2-pve
+
+  * fix #2595: pve-efiboot-tool: improve filtering out meta packages to avoid
+    skipping manually selected kernels
+
+ -- Proxmox Support Team <support@proxmox.com>  Sat, 15 Feb 2020 17:23:24 +0100
+
 pve-kernel-5.3 (6.1-4) pve pmg; urgency=medium
 
   * ABI bump for 5.3.18-1-pve
