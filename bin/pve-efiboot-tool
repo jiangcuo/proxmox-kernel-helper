@@ -98,7 +98,10 @@ format() {
 
 	part_basename=$(basename "$bdev")
 	if [ -z "$part_basename" ]; then
-		warn "E: unable to determine basename of '$part'"
+		if [ $part != $bdev ]; then
+		    symlinkmsg=" -> '$bdev'"
+		fi
+		warn "E: unable to determine basename of '$part'$symlinkmsg"
 		exit 1
 	fi
 
