@@ -96,7 +96,7 @@ format() {
 		fi
 	fi
 
-	part_basename=$(basename "$part")
+	part_basename=$(basename "$bdev")
 	if [ -z "$part_basename" ]; then
 		warn "E: unable to determine basename of '$part'"
 		exit 1
