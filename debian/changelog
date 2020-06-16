@@ -1,3 +1,11 @@
+pve-kernel-5.4 (6.2-3) pve pmg; urgency=medium
+
+  * ABI bump for 5.4.44-1-pve
+
+  * pve-efiboot-tool format: fix handling of passing blockdevices with disk/by-id path
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 16 Jun 2020 13:42:23 +0200
+
 pve-kernel-5.4 (6.2-2) pve pmg; urgency=medium
 
   * ABI bump for 5.4.41-1-pve
