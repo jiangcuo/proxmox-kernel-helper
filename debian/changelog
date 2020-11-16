@@ -1,3 +1,9 @@
+pve-kernel-5.4 (6.3-1) pve pmg; urgency=medium
+
+  * ABI bump for 5.4.73-1-pve
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 16 Nov 2020 11:28:15 +0100
+
 pve-kernel-5.4 (6.2-7) pve pmg; urgency=medium
 
   * ABI bump for 5.4.65-1-pve
