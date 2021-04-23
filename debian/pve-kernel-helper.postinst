@@ -1,0 +1,16 @@
+#! /bin/sh
+
+set -e
+
+case "$1" in
+    configure)
+        if [ -e /etc/kernel/pve-efiboot-uuids ]; then
+            echo "$0: legacy ESP list /etc/kernel/pve-efiboot-uuids found moving to /etc/kernel/proxmox-boot-uuids" 1>&2
+            mv /etc/kernel/pve-efiboot-uuids /etc/kernel/proxmox-boot-uuids
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
