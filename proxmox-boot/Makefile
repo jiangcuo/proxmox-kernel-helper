@@ -1,11 +1,13 @@
 KERNEL_HOOKSCRIPTS = proxmox-auto-removal zz-proxmox-boot
 INITRAMFS_HOOKSCRIPTS = proxmox-boot-sync
 SHARE_FILES = functions
+GRUB_CFG_SNIPPET = 000_proxmox_boot_header
 
 POSTINSTHOOKDIR = ${DESTDIR}/etc/kernel/postinst.d
 POSTRMHOOKDIR = ${DESTDIR}/etc/kernel/postrm.d
 POSTINITRAMFSHOOKDIR = ${DESTDIR}/etc/initramfs/post-update.d
 SHARE_SCRIPTDIR = ${DESTDIR}/usr/share/pve-kernel-helper/scripts
+GRUB_CFG_DIR = ${DESTDIR}/etc/grub.d
 
 .PHONY: all
 all:
@@ -19,6 +21,8 @@ install:
 	install -m 0755 ${INITRAMFS_HOOKSCRIPTS} ${POSTINITRAMFSHOOKDIR}
 	install -d ${SHARE_SCRIPTDIR}
 	install -m 0755 ${SHARE_FILES} ${SHARE_SCRIPTDIR}
+	install -d ${GRUB_CFG_DIR}
+	install -m 0755 ${GRUB_CFG_SNIPPET} ${GRUB_CFG_DIR}
 
 .PHONY: clean distclean
 distclean:

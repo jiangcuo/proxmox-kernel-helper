@@ -1,0 +1,22 @@
+#! /bin/sh
+set -e
+
+. /usr/share/pve-kernel-helper/scripts/functions
+
+if proxmox-boot-tool status --quiet; then
+	cat <<- EOF
+	#
+	# This system is booted via proxmox-boot-tool! The grub-config used when
+	# booting from the disks configured with proxmox-boot-tool resides on the vfat
+	# partitions with UUIDs listed in ${ESP_LIST}.
+	# /boot/grub/grub.cfg is NOT read when booting from those disk!
+	EOF
+
+	if [ -z "$DPKG_RUNNING_VERSION" ] && [ -z "$PVE_EFIBOOT_UNSHARED" ]; then
+		warn "W: This system is booted via proxmox-boot-tool:"
+		warn "W: Running update-grub does not update the correct config!"
+		warn "W: Run 'proxmox-boot-tool refresh' instead."
+		warn ""
+	fi
+fi
+
