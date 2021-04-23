@@ -15,8 +15,10 @@ if proxmox-boot-tool status --quiet; then
 	if [ -z "$DPKG_RUNNING_VERSION" ] && [ -z "$PVE_EFIBOOT_UNSHARED" ]; then
 		warn "W: This system is booted via proxmox-boot-tool:"
 		warn "W: Running update-grub does not update the correct config!"
-		warn "W: Run 'proxmox-boot-tool refresh' instead."
+		warn "W: Running: 'proxmox-boot-tool refresh'."
 		warn ""
+
+		proxmox-boot-tool refresh
 	fi
 fi
 
