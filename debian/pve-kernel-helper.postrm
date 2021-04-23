@@ -9,7 +9,7 @@ case "$1" in
     ;;
   abort-upgrade)
        if [ -n "$2" ]; then
-           if dpkg --compare-versions "$2" lt 6.3-9; then
+           if dpkg --compare-versions "$2" lt "6.4-1~"; then
                dpkg-divert --package pve-kernel-helper --remove --rename \
                    --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
            fi
