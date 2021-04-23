@@ -6,7 +6,6 @@ set -e
 # https://kernel-team.pages.debian.net/kernel-handbook/ch-update-hooks.html
 
 
-MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
 
 # - cleanup - gently delete all kernels not in kernel-keep-list
 

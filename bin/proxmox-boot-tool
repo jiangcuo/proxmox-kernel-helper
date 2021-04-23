@@ -283,6 +283,7 @@ usage() {
 	warn "       $0 refresh [--hook <name>]"
 	warn "       $0 kernel <add|remove> <kernel-version>"
 	warn "       $0 kernel list"
+	warn "       $0 status [--quiet]"
 	warn "       $0 help"
 }
 
@@ -312,6 +313,62 @@ help() {
 	echo ""
 	echo "    list kernel versions currently selected for inclusion on ESPs."
 	echo ""
+	echo "USAGE: $0 status [--quiet]"
+	echo ""
+	echo "    Print details about the ESPs configuration. Exits with 0 if any ESP is configured, else with 2."
+	echo ""
+}
+
+_status_detail() {
+	if ! (echo "${curr_uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
+		warn "WARN: ${curr_uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
+		return
+	fi
+
+	path="/dev/disk/by-uuid/$curr_uuid"
+	if [ ! -e "${path}" ]; then
+		warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
+		return
+	fi
+
+	mountpoint="${MOUNTROOT}/${curr_uuid}"
+	mkdir -p "${mountpoint}" || \
+		{ warn "creation of mountpoint ${mountpoint} failed - skipping"; return; }
+	mount "${path}" "${mountpoint}" || \
+		{ warn "mount of ${path} failed - skipping"; return; }
+
+	result=""
+	if [ -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
+		result="uefi"
+		if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
+			warn "${path}/$PMX_ESP_DIR does not exist"
+		fi
+	fi
+	if [ -d "${mountpoint}/grub" ]; then
+		if [ -n "$result" ]; then
+		    result="${result},grub"
+		else
+		    result="grub"
+		fi
+	fi
+	echo "$curr_uuid is configured with: $result"
+	umount "${mountpoint}" || \
+		{ warn "umount of ${path} failed - failure"; exit 0; }
+
+	rmdir "${mountpoint}" || true
+}
+
+status() {
+	quiet="$1"
+	if [ ! -e "${ESP_LIST}" ]; then
+		if [ -z "$quiet" ]; then
+		    warn "E: $ESP_LIST does not exist."
+		fi
+		exit 2
+	fi
+	if [ -z "$quiet" ]; then
+		loop_esp_list _status_detail
+	fi
 }
 
 if [ -z "$1" ]; then
@@ -389,6 +446,20 @@ case "$1" in
 				exit 1
 			;;
 		esac
+	;;
+	'status')
+		if [ "$#" -eq 2 ] && [ "$2" = '--quiet' ]; then
+			shift
+			status "$1"
+		elif [ "$#" -eq 1 ]; then
+			reexec_in_mountns "$@"
+			shift
+			status
+		else
+			usage
+			exit 1
+		fi
+		exit 0
 	;;
 	'help')
 		shift
