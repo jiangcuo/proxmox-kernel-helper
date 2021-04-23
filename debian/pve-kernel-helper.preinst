@@ -3,11 +3,14 @@
 set -e
 
 case "$1" in
-    install)
-        if [ -z "$2" ]; then
+    install|upgrade)
+        if dpkg --compare-versions "$2" lt "6.4-1~"; then
             dpkg-divert --package pve-kernel-helper --add --rename \
                 --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
         fi
+    ;;
+    *)
+        echo "ignoring unknown preinst command '$1'"
     ;;
 esac
 
