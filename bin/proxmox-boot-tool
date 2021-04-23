@@ -195,6 +195,10 @@ clean() {
 	if [ -e "$ESP_LIST".tmp ]; then
 		mv "$ESP_LIST".tmp "$ESP_LIST"
 	fi
+
+	echo "Sorting and removing duplicate ESPs.."
+	sort -uo "$ESP_LIST".tmp "$ESP_LIST"
+	mv "$ESP_LIST".tmp "$ESP_LIST"
 }
 
 refresh() {
