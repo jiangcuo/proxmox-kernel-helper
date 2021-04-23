@@ -150,14 +150,24 @@ init() {
 	echo "Mounting '$part' on '$esp_mp'."
 	mount -t vfat "$part" "$esp_mp"
 
-	echo "Installing systemd-boot.."
-	mkdir -p "$esp_mp/$PMX_ESP_DIR"
-	bootctl --path "$esp_mp" install
+	if [ -d /sys/firmware/efi ]; then
+		echo "Installing systemd-boot.."
+		mkdir -p "$esp_mp/$PMX_ESP_DIR"
+		bootctl --path "$esp_mp" install
 
-	echo "Configuring systemd-boot.."
-	echo "timeout 3" > "$esp_mp/$PMX_LOADER_CONF.tmp"
-	echo "default proxmox-*" >> "$esp_mp/$PMX_LOADER_CONF.tmp"
-	mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
+		echo "Configuring systemd-boot.."
+		echo "timeout 3" > "$esp_mp/$PMX_LOADER_CONF.tmp"
+		echo "default proxmox-*" >> "$esp_mp/$PMX_LOADER_CONF.tmp"
+		mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
+	else
+		echo "Installing grub i386-pc target.."
+		grub-install \
+			--boot-directory $esp_mp \
+			--target i386-pc \
+			--no-floppy \
+			--bootloader-id='proxmox' \
+			"/dev/$PKNAME"
+	fi
 	echo "Unmounting '$part'."
 	umount "$part"
 

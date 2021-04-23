@@ -75,18 +75,30 @@ update_esp_func() {
 		{ warn "creation of mountpoint ${mountpoint} failed - skipping"; return; }
 	mount "${path}" "${mountpoint}" || \
 		{ warn "mount of ${path} failed - skipping"; return; }
-	if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
-		warn "${path} contains no loader.conf - skipping"
+	if [ -d /sys/firmware/efi ]; then
+		if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
+			warn "${path} contains no loader.conf - skipping"
+			return
+		fi
+		if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
+			warn "${path}/$PMX_ESP_DIR does not exist- skipping"
+			return
+		fi
+	elif [ ! -d "${mountpoint}/grub" ]; then
+		warn "${path} contains no grub directory - skipping"
 		return
 	fi
-	if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
-		warn "${path}/$PMX_ESP_DIR does not exist- skipping"
-		return
-	fi
-
 	warn "Copying and configuring kernels on ${path}"
 	copy_and_config_kernels "${mountpoint}"
-	remove_old_kernels "${mountpoint}"
+	if [ -d /sys/firmware/efi ]; then
+		remove_old_kernels_efi "${mountpoint}"
+	else
+		remove_old_kernels_legacy "${mountpoint}"
+		mount --bind "${mountpoint}" "/boot"
+		update-grub
+		umount /boot
+
+	fi
 
 	umount "${mountpoint}" || \
 		{ warn "umount of ${path} failed - failure"; exit 0; }
@@ -112,26 +124,33 @@ copy_and_config_kernels() {
 			continue
 		fi
 
-		warn "	Copying kernel and creating boot-entry for ${kver}"
-		KERNEL_ESP_DIR="${PMX_ESP_DIR}/${kver}"
-		KERNEL_LIVE_DIR="${esp}/${KERNEL_ESP_DIR}"
-		mkdir -p "${KERNEL_LIVE_DIR}"
-		cp -u --preserve=timestamps "${linux_image}" "${KERNEL_LIVE_DIR}/"
-		cp -u --preserve=timestamps "${initrd}" "${KERNEL_LIVE_DIR}/"
+		if [ -d /sys/firmware/efi ]; then
 
-		# create loader entry
-		cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
-			title    ${LOADER_TITLE}
-			version  ${kver}
-			options   ${CMDLINE}
-			linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
-			initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
-		EOF
+			warn "	Copying kernel and creating boot-entry for ${kver}"
+			KERNEL_ESP_DIR="${PMX_ESP_DIR}/${kver}"
+			KERNEL_LIVE_DIR="${esp}/${KERNEL_ESP_DIR}"
+			mkdir -p "${KERNEL_LIVE_DIR}"
+			cp -u --preserve=timestamps "${linux_image}" "${KERNEL_LIVE_DIR}/"
+			cp -u --preserve=timestamps "${initrd}" "${KERNEL_LIVE_DIR}/"
+
+			# create loader entry
+			cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
+				title    ${LOADER_TITLE}
+				version  ${kver}
+				options   ${CMDLINE}
+				linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
+				initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
+			EOF
+		else
+			warn "	Copying kernel ${kver}"
+			cp -u --preserve=timestamps "${linux_image}" "${esp}/"
+			cp -u --preserve=timestamps "${initrd}" "${esp}/"
+		fi
 	done
 
 }
 
-remove_old_kernels() {
+remove_old_kernels_efi() {
 	esp="$1"
 
 	for kerneldir in "${esp}/${PMX_ESP_DIR}"/*; do
@@ -146,6 +165,20 @@ remove_old_kernels() {
 		warn "	Removing old version ${kver}"
 		rm -rf "${kerneldir}"
 		rm -f "${esp}/loader/entries/proxmox-${kver}.conf"
+	done
+
+}
+
+remove_old_kernels_legacy() {
+	esp="$1"
+
+	for kernel in "${esp}/"vmlinuz-*; do
+		kver="$(echo "${kernel}" | sed -r "s#^${esp}/vmlinuz-(.+)\$#\\1#")"
+
+		echo "${BOOT_KVERS}" | grep -q "${kver}" && continue;
+		warn "	Removing old version ${kver}"
+		rm -rf "${esp}/vmlinuz-${kver}"
+		rm -rf "${esp}/initrd.img-${kver}"
 	done
 
 }
