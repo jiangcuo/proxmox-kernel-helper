@@ -1,0 +1,16 @@
+#! /bin/sh
+
+set -e
+
+case "$1" in
+    install)
+        if [ -z "$2" ]; then
+            dpkg-divert --package pve-kernel-helper --add --rename \
+                --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
+        fi
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

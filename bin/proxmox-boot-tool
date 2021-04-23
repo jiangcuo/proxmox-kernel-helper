@@ -161,7 +161,7 @@ init() {
 		mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
 	else
 		echo "Installing grub i386-pc target.."
-		grub-install \
+		grub-install.real \
 			--boot-directory $esp_mp \
 			--target i386-pc \
 			--no-floppy \

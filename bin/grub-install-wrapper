@@ -1,0 +1,12 @@
+#! /bin/sh
+set -e
+
+. /usr/share/pve-kernel-helper/scripts/functions
+
+if proxmox-boot-tool status --quiet; then
+	warn "grub-install is disabled because this system is booted via proxmox-boot-tool, if you really need to run it, run /usr/sbin/grub-install.real"
+	exit 1
+else
+	grub-install.real "$@"
+fi
+
