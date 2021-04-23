@@ -5,7 +5,7 @@ all:
 
 install:
 	install -d ${SBINDIR}
-	install -m 0755 pve-efiboot-tool ${SBINDIR}/
+	install -m 0755 proxmox-boot-tool ${SBINDIR}/
 
 .PHONY: clean distclean
 distclean:

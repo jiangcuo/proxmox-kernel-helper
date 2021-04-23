@@ -13,7 +13,7 @@ BUILD_DIR=build
 
 DEBS=${KERNEL_DEB} ${HEADERS_DEB} ${HELPER_DEB}
 
-SUBDIRS = efiboot bin
+SUBDIRS = proxmox-boot bin
 
 .PHONY: all
 all: ${SUBDIRS}

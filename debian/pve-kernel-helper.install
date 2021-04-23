@@ -1,5 +1,5 @@
 etc/kernel/postinst.d/*
 etc/kernel/postrm.d/*
-etc/initramfs/post-update.d/pve-efiboot-sync
-usr/sbin/pve-efiboot-tool
+etc/initramfs/post-update.d/proxmox-boot-sync
+usr/sbin/proxmox-boot-tool
 usr/share/pve-kernel-helper/scripts/functions

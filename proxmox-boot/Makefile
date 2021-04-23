@@ -1,5 +1,5 @@
-KERNEL_HOOKSCRIPTS = pve-auto-removal zz-pve-efiboot
-INITRAMFS_HOOKSCRIPTS = pve-efiboot-sync
+KERNEL_HOOKSCRIPTS = proxmox-auto-removal zz-proxmox-boot
+INITRAMFS_HOOKSCRIPTS = proxmox-boot-sync
 SHARE_FILES = functions
 
 POSTINSTHOOKDIR = ${DESTDIR}/etc/kernel/postinst.d

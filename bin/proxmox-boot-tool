@@ -199,7 +199,7 @@ clean() {
 
 refresh() {
 	hook=$1
-	hookscripts='pve-auto-removal zz-pve-efiboot'
+	hookscripts='proxmox-auto-removal zz-proxmox-boot'
 
 	if [ -n "$hook" ]; then
 	    if echo "$hookscripts" | grep -sqE "(^|[[:space:]]+)$hook([[:space:]]+|$)"; then
