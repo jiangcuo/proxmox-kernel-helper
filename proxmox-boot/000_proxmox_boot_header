@@ -18,7 +18,7 @@ if proxmox-boot-tool status --quiet; then
 		warn "W: Running: 'proxmox-boot-tool refresh'"
 		warn ""
 
-		proxmox-boot-tool refresh
+		proxmox-boot-tool refresh > /dev/null
 	fi
 fi
 
