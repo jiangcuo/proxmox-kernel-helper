@@ -381,6 +381,11 @@ status() {
 		exit 2
 	fi
 	if [ -z "$quiet" ]; then
+		if [ -d /sys/firmware/efi ]; then
+		    echo "System currently booted with uefi"
+		else
+		    echo "System currently booted with legacy bios"
+		fi
 		loop_esp_list _status_detail
 	fi
 }
