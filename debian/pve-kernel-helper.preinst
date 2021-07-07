@@ -4,7 +4,7 @@ set -e
 
 case "$1" in
     install|upgrade)
-        if dpkg --compare-versions "$2" lt "6.4-1~"; then
+        if ! dpkg -S /usr/sbin/grub-install|grep -q 'diversion by pve-kernel-helper'; then
             dpkg-divert --package pve-kernel-helper --add --rename \
                 --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
         fi
