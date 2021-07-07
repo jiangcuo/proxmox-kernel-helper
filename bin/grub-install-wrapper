@@ -4,6 +4,12 @@ set -e
 . /usr/share/pve-kernel-helper/scripts/functions
 
 if proxmox-boot-tool status --quiet; then
+	#detect when being called by dpkg (e.g. grub-pc.postinst
+	if [ -n "$DPKG_RUNNING_VERSION" ] && \
+	echo "$DPKG_MAINTSCRIPT_PACKAGE" | grep -sq "^grub-"; then
+		warn "This system is booted via proxmox-boot-tool, ignoring dpkg call to grub-install"
+		exit 0
+	fi
 	warn "grub-install is disabled because this system is booted via proxmox-boot-tool, if you really need to run it, run /usr/sbin/grub-install.real"
 	exit 1
 else
