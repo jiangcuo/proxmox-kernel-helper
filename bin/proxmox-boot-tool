@@ -353,16 +353,18 @@ _status_detail() {
 
 	result=""
 	if [ -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
-		result="uefi"
 		if [ ! -d "${mountpoint}/$PMX_ESP_DIR" ]; then
 			warn "${path}/$PMX_ESP_DIR does not exist"
 		fi
+		versions_uefi=$(ls -1 ${mountpoint}/$PMX_ESP_DIR | awk '{printf (NR>1?", ":"") $0}')
+		result="uefi (versions: ${versions_uefi})"
 	fi
 	if [ -d "${mountpoint}/grub" ]; then
+		versions_grub=$(ls -1 ${mountpoint}/vmlinuz-* | awk '{ gsub(/.*\/vmlinuz-/, ""); printf (NR>1?", ":"") $0 }')
 		if [ -n "$result" ]; then
-		    result="${result},grub"
+		    result="${result}, grub (versions: ${versions_grub})"
 		else
-		    result="grub"
+		    result="grub (versions: ${versions_grub})"
 		fi
 	fi
 	echo "$curr_uuid is configured with: $result"
