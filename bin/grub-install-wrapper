@@ -28,6 +28,7 @@ if proxmox-boot-tool status --quiet; then
                 touch "$MARKER_FILE"
                 exit 0
             else
+                echo "Proxmox boot-tool marker file found, ignoring grub install call."
                 exit 0
             fi
     fi
