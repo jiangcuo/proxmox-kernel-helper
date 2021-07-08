@@ -1,39 +1,38 @@
 #! /bin/sh
+
 set -e
 
 . /usr/share/pve-kernel-helper/scripts/functions
 
 init_boot_disks() {
-	if ! (echo "${curr_uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
-		warn "WARN: ${curr_uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
-		return
-	fi
+    if ! (echo "${curr_uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
+        warn "WARN: ${curr_uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
+        return
+    fi
 
-	path="/dev/disk/by-uuid/$curr_uuid"
-	if [ ! -e "${path}" ]; then
-		warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
-		return
-	fi
-	proxmox-boot-tool init "$path"
+    path="/dev/disk/by-uuid/$curr_uuid"
+    if [ ! -e "${path}" ]; then
+        warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
+        return
+    fi
+    proxmox-boot-tool init "$path"
 }
 
 if proxmox-boot-tool status --quiet; then
-	#detect when being called by dpkg (e.g. grub-pc.postinst
-	if [ -n "$DPKG_RUNNING_VERSION" ] && \
-	echo "$DPKG_MAINTSCRIPT_PACKAGE" | grep -sq "^grub-"; then
-		MARKER_FILE="/tmp/proxmox-boot-tool.dpkg.marker"
-		if [ ! -e "$MARKER_FILE" ]; then
-		    warn "This system is booted via proxmox-boot-tool, running proxmox-boot-tool init for all configured bootdisks"
-		    loop_esp_list init_boot_disks
-		    touch "$MARKER_FILE"
-		    exit 0
-		else
-		    exit 0
-		fi
-	fi
-	warn "grub-install is disabled because this system is booted via proxmox-boot-tool, if you really need to run it, run /usr/sbin/grub-install.real"
-	exit 1
+    # detect when being called by dpkg (e.g. grub-pc.postinst
+    if [ -n "$DPKG_RUNNING_VERSION" ] && echo "$DPKG_MAINTSCRIPT_PACKAGE" | grep -sq "^grub-"; then
+            MARKER_FILE="/tmp/proxmox-boot-tool.dpkg.marker"
+            if [ ! -e "$MARKER_FILE" ]; then
+                warn "This system is booted via proxmox-boot-tool, running proxmox-boot-tool init for all configured bootdisks"
+                loop_esp_list init_boot_disks
+                touch "$MARKER_FILE"
+                exit 0
+            else
+                exit 0
+            fi
+    fi
+    warn "grub-install is disabled because this system is booted via proxmox-boot-tool, if you really need to run it, run /usr/sbin/grub-install.real"
+    exit 1
 else
-	grub-install.real "$@"
+    grub-install.real "$@"
 fi
-
