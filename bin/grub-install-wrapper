@@ -21,6 +21,10 @@ init_boot_disks() {
 if proxmox-boot-tool status --quiet; then
     # detect when being called by dpkg (e.g. grub-pc.postinst
     if [ -n "$DPKG_RUNNING_VERSION" ] && echo "$DPKG_MAINTSCRIPT_PACKAGE" | grep -sq "^grub-"; then
+            if [ -d /sys/firmware/efi ]; then
+                echo "Promxox's boot-tool is used and booted via EFI, skipping re-sync of GRUB"
+                exit 0
+            fi
             MARKER_FILE="/tmp/proxmox-boot-tool.dpkg.marker"
             if [ ! -e "$MARKER_FILE" ]; then
                 warn "This system is booted via proxmox-boot-tool, running proxmox-boot-tool init for all configured bootdisks"
@@ -28,7 +32,7 @@ if proxmox-boot-tool status --quiet; then
                 touch "$MARKER_FILE"
                 exit 0
             else
-                echo "Proxmox boot-tool marker file found, ignoring grub install call."
+                echo "Proxmox's boot-tool marker file found, ignoring grub install call."
                 exit 0
             fi
     fi
