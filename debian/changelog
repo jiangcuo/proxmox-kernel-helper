@@ -1,3 +1,16 @@
+pve-kernel-5.11 (7.0-4) bullseye; urgency=medium
+
+  * improve proxmox-boot-tool handling with legacy GRUB
+
+  * proxmox-boot: redirect stdout in update-grub snippet
+
+  * proxmox-boot: divert call to grub-install to p-b-t init
+
+  * proxmox-boot: maintscript: always add diversion to proxmox-boot-tool GRUB
+    wrapper if not present
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 08 Jul 2021 10:08:17 +0200
+
 pve-kernel-5.11 (7.0-3) bullseye; urgency=medium
 
   * ABI bump for 5.11.22-1-pve
