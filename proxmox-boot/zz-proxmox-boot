@@ -31,7 +31,9 @@ trap cleanup EXIT INT TERM QUIT
 . /usr/share/pve-kernel-helper/scripts/functions
 
 LOADER_TITLE="Proxmox Virtual Environment"
-if [ -d /usr/share/doc/proxmox-mailgateway/ ]; then
+if [ -d /etc/pve/ ]; then
+	LOADER_TITLE="Proxmox Virtual Environment"
+elif [ -d /usr/share/doc/proxmox-mailgateway/ ]; then
 	LOADER_TITLE="Proxmox Mailgateway"
 elif [ -d /usr/share/doc/proxmox-backup/ ]; then
 	LOADER_TITLE="Proxmox Backup Server"
