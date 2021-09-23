@@ -132,21 +132,21 @@ copy_and_config_kernels() {
 			KERNEL_ESP_DIR="${PMX_ESP_DIR}/${kver}"
 			KERNEL_LIVE_DIR="${esp}/${KERNEL_ESP_DIR}"
 			mkdir -p "${KERNEL_LIVE_DIR}"
-			cp -u --preserve=timestamps "${linux_image}" "${KERNEL_LIVE_DIR}/"
-			cp -u --preserve=timestamps "${initrd}" "${KERNEL_LIVE_DIR}/"
+			cp --preserve=timestamps "${linux_image}" "${KERNEL_LIVE_DIR}/"
+			cp --preserve=timestamps "${initrd}" "${KERNEL_LIVE_DIR}/"
 
 			# create loader entry
 			cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
 				title    ${LOADER_TITLE}
 				version  ${kver}
 				options   ${CMDLINE}
-				linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
-				initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
+			    linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
+			    initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
 			EOF
 		else
 			warn "	Copying kernel ${kver}"
-			cp -u --preserve=timestamps "${linux_image}" "${esp}/"
-			cp -u --preserve=timestamps "${initrd}" "${esp}/"
+			cp --preserve=timestamps "${linux_image}" "${esp}/"
+			cp --preserve=timestamps "${initrd}" "${esp}/"
 		fi
 	done
 
