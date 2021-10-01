@@ -1,3 +1,9 @@
+pve-kernel-5.13 (7.1-2) bullseye; urgency=medium
+
+  * fix #3632: proxmox-boot: copy kernel+initrd unconditionally
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 01 Oct 2021 09:15:36 +0200
+
 pve-kernel-5.13 (7.1-1) bullseye; urgency=medium
 
   * ABI bump for 5.13.14-1-pve
