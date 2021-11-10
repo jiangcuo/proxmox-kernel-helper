@@ -50,7 +50,9 @@ update_esps() {
 	    exit 0
 	fi
 	if [ -f /etc/kernel/cmdline ]; then
-		CMDLINE="$(cat /etc/kernel/cmdline)"
+		read -r CMDLINE < /etc/kernel/cmdline
+		echo ${CMDLINE} | grep -q 'root=' || \
+			{ warn "No root= parameter in /etc/kernel/cmdline found!"; exit 1; }
 	else
 		warn "No /etc/kernel/cmdline found - falling back to /proc/cmdline"
 		# remove initrd entries
