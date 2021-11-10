@@ -140,8 +140,8 @@ copy_and_config_kernels() {
 				title    ${LOADER_TITLE}
 				version  ${kver}
 				options   ${CMDLINE}
-			    linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
-			    initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
+				linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
+				initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
 			EOF
 		else
 			warn "	Copying kernel ${kver}"
