@@ -141,7 +141,7 @@ copy_and_config_kernels() {
 			cat > "${esp}/loader/entries/proxmox-${kver}.conf" <<- EOF
 				title    ${LOADER_TITLE}
 				version  ${kver}
-				options   ${CMDLINE}
+				options  ${CMDLINE}
 				linux    /${KERNEL_ESP_DIR}/vmlinuz-${kver}
 				initrd   /${KERNEL_ESP_DIR}/initrd.img-${kver}
 			EOF
