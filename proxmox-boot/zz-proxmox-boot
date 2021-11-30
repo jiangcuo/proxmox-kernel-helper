@@ -50,7 +50,11 @@ update_esps() {
 	    exit 0
 	fi
 	if [ -f /etc/kernel/cmdline ]; then
-		read -r CMDLINE < /etc/kernel/cmdline
+		# we can have cmdline files with multiple or no new line at all, handle both!
+		while IFS= read -r CMDLINE || [ -n "$CMDLINE" ]; do
+			CMDLINE="$CMDLINE"
+			break
+		done < /etc/kernel/cmdline
 		echo ${CMDLINE} | grep -q 'root=' || \
 			{ warn "No root= parameter in /etc/kernel/cmdline found!"; exit 1; }
 	else
