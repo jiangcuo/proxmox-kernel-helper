@@ -1,3 +1,16 @@
+pve-kernel-5.13 (7.1-5) bullseye; urgency=medium
+
+  * proxmox-boot: esp config: avoid leading whitespace in initrd/linux
+    options
+
+  * proxmox-boot: read only first line of /etc/kernel/cmdline to avoid
+    breaking the loder config by adding empty or bogus lines that a user wrote
+    by mistake
+
+  * ABI bump for 5.13.19-2-pve
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 30 Nov 2021 13:29:40 +0100
+
 pve-kernel-5.13 (7.1-4) bullseye; urgency=medium
 
   * ABI bump for 5.13.19-1-pve
