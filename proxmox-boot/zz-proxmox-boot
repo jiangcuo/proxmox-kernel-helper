@@ -52,7 +52,6 @@ update_esps() {
 	if [ -f /etc/kernel/cmdline ]; then
 		# we can have cmdline files with multiple or no new line at all, handle both!
 		while IFS= read -r CMDLINE || [ -n "$CMDLINE" ]; do
-			CMDLINE="$CMDLINE"
 			break
 		done < /etc/kernel/cmdline
 		echo ${CMDLINE} | grep -q 'root=' || \
