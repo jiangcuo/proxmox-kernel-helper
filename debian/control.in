@@ -9,6 +9,7 @@ Maintainer: Proxmox Support Team <support@proxmox.com>
 Package: pve-headers-@KERNEL_VER@
 Architecture: all
 Section: admin
+Provides: linux-headers-amd64, linux-headers-generic
 Priority: optional
 Depends: pve-headers-@KERNEL_ABI@,
 Description: Latest Proxmox VE Kernel Headers
@@ -19,6 +20,7 @@ Description: Latest Proxmox VE Kernel Headers
 Package: pve-kernel-@KERNEL_VER@
 Architecture: all
 Section: admin
+Provides: linux-image-amd64, linux-image-generic
 Priority: optional
 Depends: pve-firmware,
          pve-kernel-@KERNEL_ABI@,
