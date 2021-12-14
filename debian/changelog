@@ -1,3 +1,13 @@
+pve-kernel-5.15 (7.1-7) bullseye; urgency=medium
+
+  * ABI bump for 5.15.7-1-pve
+
+  * fix #3781: add Provides: wireguard-modules to control.in
+
+  * d/control.in: Provide linux-image/linux-headers
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 14 Dec 2021 21:28:50 +0100
+
 pve-kernel-5.15 (7.1-6) bullseye; urgency=medium
 
   * ABI bump for 5.15.5-1-pve
