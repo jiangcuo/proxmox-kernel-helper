@@ -104,6 +104,11 @@ loop_esp_list() {
 
 get_first_line() {
 	file="$1"
+	if [ ! -e  "$file" ]; then
+	    echo ""
+	    return
+	fi
+
 	while IFS= read -r line || [ -n "$line" ]; do
 		break
 	done < "${file}"
