@@ -1,0 +1,2 @@
+# ensure the SYS_FB marked framebuffer can actually be used by the fbcon(sole)
+simpledrm

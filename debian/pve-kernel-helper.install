@@ -5,3 +5,4 @@ etc/initramfs/post-update.d/proxmox-boot-sync
 usr/sbin/proxmox-boot-tool
 usr/sbin/grub-install
 usr/share/pve-kernel-helper/scripts/functions
+debian/proxmox-simpledrm /usr/share/initramfs-tools/modules.d
