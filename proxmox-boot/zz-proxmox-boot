@@ -93,6 +93,9 @@ update_esp_func() {
 
 	pinned_kernel=$(get_first_line "${PINNED_KERNEL_CONF}")
 
+	if [ -e "${NEXT_BOOT_PIN}" ]; then
+	    pinned_kernel=$(get_first_line "${NEXT_BOOT_PIN}")
+	fi
 	if [ -d /sys/firmware/efi ]; then
 		set_systemd_boot_default "${mountpoint}" "${pinned_kernel}"
 		remove_old_kernels_efi "${mountpoint}"

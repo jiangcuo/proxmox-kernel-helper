@@ -288,10 +288,16 @@ list_kernels() {
 	echo "$boot_kernels"
 
 	pinned_kernel="$(get_first_line "$PINNED_KERNEL_CONF")"
+	nextboot_kernel="$(get_first_line "$NEXT_BOOT_PIN")"
 	if [ -n "$pinned_kernel" ]; then
 		echo ""
 		echo "Pinned kernel:"
 		echo "${pinned_kernel}"
+	fi
+	if [ -n "$nextboot_kernel" ]; then
+		echo ""
+		echo "Kernel pinned on next-boot:"
+		echo "${nextboot_kernel}"
 	fi
 }
 
@@ -303,8 +309,8 @@ usage() {
 	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh [--hook <name>]"
 	warn "       $0 kernel <add|remove> <kernel-version>"
-	warn "       $0 kernel pin <kernel-version>"
-	warn "       $0 kernel unpin"
+	warn "       $0 kernel pin <kernel-version> [--next-boot]"
+	warn "       $0 kernel unpin [--next-boot]"
 	warn "       $0 kernel list"
 	warn "       $0 status [--quiet]"
 	warn "       $0 help"
@@ -332,14 +338,16 @@ help() {
 	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
 	echo "    NOTE: you need to manually run 'refresh' once you're finished with adding/removing kernels from the list"
 	echo ""
-	echo "USAGE: $0 kernel pin <kernel-version>"
+	echo "USAGE: $0 kernel pin <kernel-version> [--next-boot]"
 	echo ""
 	echo "    pin pve-kernel with ABI <kernel-version> as the default entry to be booted."
+	echo "    with --next-boot sets <kernel-version> only for the next boot."
 	echo "    NOTE: you need to manually run 'refresh' once you're finished with pinning kernels"
 	echo ""
-	echo "USAGE: $0 kernel unpin"
+	echo "USAGE: $0 kernel unpin [--next-boot]"
 	echo ""
-	echo "    unpin sets the latest kernel as the default entry (undoes a previous pin)"
+	echo "    unpin removes pinned and next-boot kernel settings."
+	echo "    with --next-boot only removes the pin for the next boot."
 	echo ""
 	echo "USAGE: $0 kernel list"
 	echo ""
@@ -412,6 +420,7 @@ status() {
 
 pin_kernel() {
 	ver="$1"
+	pin_file="$2"
 
 	if [ -z "$ver" ]; then
 		warn "E: <kernel-version> is mandatory"
@@ -419,17 +428,25 @@ pin_kernel() {
 		exit 1
 	fi
 
+	if [ -z "$pin_file" ]; then
+	    pin_file="$PINNED_KERNEL_CONF"
+	fi
+
 	if [ ! -e "/boot/vmlinuz-$ver" ]; then
 		warn "E: no kernel image found in /boot for '$ver', not setting default."
 		exit 1
 	fi
-	echo "$ver" > "$PINNED_KERNEL_CONF"
-	echo "Set kernel '$ver' $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+	echo "$ver" > "$pin_file"
+	echo "Set kernel '$ver' in $pin_file. Use the 'refresh' command to update the ESPs."
 }
 
 unpin_kernel() {
-	rm -f "$PINNED_KERNEL_CONF"
-	echo "Removed $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+	rm -f "$NEXT_BOOT_PIN"
+	echo "Removed $NEXT_BOOT_PIN. Use the 'refresh' command to update the ESPs."
+	if [ -z "$1" ]; then
+		rm -f "$PINNED_KERNEL_CONF"
+		echo "Removed $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+	fi
 }
 
 if [ -z "$1" ]; then
@@ -501,11 +518,25 @@ case "$1" in
 				exit 0
 			;;
 			'pin')
-				pin_kernel "$2"
+				if [ "$#" -eq 3 ] && [ "$3" = '--next-boot' ]; then
+					pin_kernel "$2" "${NEXT_BOOT_PIN}"
+				elif [ "$#" -eq 2 ]; then
+					pin_kernel "$2"
+				else
+					usage
+					exit 1
+				fi
 				exit 0
 			;;
 			'unpin')
-				unpin_kernel "$2"
+				if [ "$#" -eq 2 ] && [ "$2" = '--next-boot' ]; then
+					unpin_kernel "$2"
+				elif [ "$#" -eq 1 ]; then
+					unpin_kernel
+				else
+					usage
+					exit 1
+				fi
 				exit 0
 			;;
 			*)

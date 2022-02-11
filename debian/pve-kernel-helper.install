@@ -2,6 +2,7 @@ etc/grub.d/000_proxmox_boot_header
 etc/kernel/postinst.d/*
 etc/kernel/postrm.d/*
 etc/initramfs/post-update.d/proxmox-boot-sync
+lib/systemd/system/proxmox-boot-cleanup.service
 usr/sbin/proxmox-boot-tool
 usr/sbin/grub-install
 usr/share/pve-kernel-helper/scripts/functions

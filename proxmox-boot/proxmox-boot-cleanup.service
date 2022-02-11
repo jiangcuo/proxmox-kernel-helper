@@ -1,0 +1,13 @@
+[Unit]
+Description=Clean up bootloader next-boot setting
+After=systemd-remount-fs.service
+ConditionPathExists=/etc/kernel/next-boot-pin
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/proxmox-boot-tool kernel unpin --next-boot
+ExecStart=/usr/sbin/proxmox-boot-tool refresh
+
+[Install]
+WantedBy=multi-user.target

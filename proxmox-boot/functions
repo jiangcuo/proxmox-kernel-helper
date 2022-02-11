@@ -6,6 +6,7 @@ ESPTYPE='c12a7328-f81f-11d2-ba4b-00a0c93ec93b'
 
 MANUAL_KERNEL_LIST="/etc/kernel/pve-efiboot-manual-kernels"
 PINNED_KERNEL_CONF="/etc/kernel/proxmox-boot-pin"
+NEXT_BOOT_PIN="/etc/kernel/next-boot-pin"
 
 MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
 # relative to the ESP mountpoint
@@ -60,6 +61,7 @@ kernel_keep_versions() {
 	fi
 
 	pinned_kernel="$(get_first_line "$PINNED_KERNEL_CONF")"
+	nextboot_kernel="$(get_first_line "$NEXT_BOOT_PIN")"
 
 	kernels="$(cat <<-EOF
 		$running_version
@@ -69,6 +71,7 @@ kernel_keep_versions() {
 		$series_metapackages
 		$oldseries_latest_kernel
 		$pinned_kernel
+		$nextboot_kernel
 		EOF
 	)"
 

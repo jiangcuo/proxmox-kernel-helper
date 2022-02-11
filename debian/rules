@@ -12,5 +12,8 @@ debian/control: $(wildcard debian/*.in)
 %:
 	dh $@
 
+override_dh_installsystemd:
+	dh_installsystemd --no-start
+
 .PHONY: build clean
 build clean:
