@@ -90,9 +90,14 @@ update_esp_func() {
 	fi
 	warn "Copying and configuring kernels on ${path}"
 	copy_and_config_kernels "${mountpoint}"
+
+	pinned_kernel=$(get_first_line "${PINNED_KERNEL_CONF}")
+
 	if [ -d /sys/firmware/efi ]; then
+		set_systemd_boot_default "${mountpoint}" "${pinned_kernel}"
 		remove_old_kernels_efi "${mountpoint}"
 	else
+		set_grub_default "${pinned_kernel}"
 		remove_old_kernels_legacy "${mountpoint}"
 		mount --bind "${mountpoint}" "/boot"
 		update-grub

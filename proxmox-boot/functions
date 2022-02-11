@@ -5,11 +5,13 @@ ESP_LIST="/etc/kernel/proxmox-boot-uuids"
 ESPTYPE='c12a7328-f81f-11d2-ba4b-00a0c93ec93b'
 
 MANUAL_KERNEL_LIST="/etc/kernel/pve-efiboot-manual-kernels"
+PINNED_KERNEL_CONF="/etc/kernel/proxmox-boot-pin"
 
 MOUNTROOT="${TMPDIR:-/var/tmp}/espmounts"
 # relative to the ESP mountpoint
 PMX_ESP_DIR="EFI/proxmox"
 PMX_LOADER_CONF="loader/loader.conf"
+GRUB_PIN_SNIPPET="/etc/default/grub.d/proxmox-kernel-pin.cfg"
 
 # adapted from /etc/kernel/postinst.d/apt-auto-removal as present in
 # debian's apt package:
@@ -21,6 +23,7 @@ PMX_LOADER_CONF="loader/loader.conf"
 #  - the second-latest kernel version
 #  - the latest kernel version of each series (e.g. 4.13, 4.15, 5.0) by
 #    marking the meta-packages
+#  - the currently pinned kernel if any
 
 kernel_keep_versions() {
 	eval "$(apt-config shell DPKG Dir::bin::dpkg/f)"
@@ -56,6 +59,8 @@ kernel_keep_versions() {
 		manual_kernels="$(cat "$MANUAL_KERNEL_LIST")"
 	fi
 
+	pinned_kernel="$(get_first_line "$PINNED_KERNEL_CONF")"
+
 	kernels="$(cat <<-EOF
 		$running_version
 		$install_version
@@ -63,6 +68,7 @@ kernel_keep_versions() {
 		$latest_2_versions
 		$series_metapackages
 		$oldseries_latest_kernel
+		$pinned_kernel
 		EOF
 	)"
 
@@ -113,4 +119,35 @@ get_first_line() {
 		break
 	done < "${file}"
 	echo "$line"
+}
+
+set_grub_default() {
+	kver="$1"
+
+	if [ -z "${kver}" ]; then
+		rm -f "${GRUB_PIN_SNIPPET}"
+	else
+		# grub menu entry ids contain the internal root-device id (e.g. for zfs the GUID of
+		# the pool printed in hex) as this is independent of the ESP (or grub location)
+		# take it from /boot/grub/grub.cfg
+		root_devid=$(sed -rn "s/.*gnulinux-advanced-(.+)['] \{$/\1/p" \
+			/boot/grub/grub.cfg)
+		entry="gnulinux-advanced-${root_devid}>gnulinux-${kver}-advanced-${root_devid}"
+		echo "GRUB_DEFAULT=\"${entry}\"" > "${GRUB_PIN_SNIPPET}"
+	fi
+}
+
+set_systemd_boot_default() {
+	mountpoint="$1"
+	kver="$2"
+	if [ -z "${kver}" ]; then
+		entry="proxmox-*"
+	else
+		entry="proxmox-${kver}.conf"
+	fi
+
+	# replaces the current default entry, if one exists else append it at the end of the file
+	sed -ri "/^default /{h;s/ .*\$/ ${entry}/};\${x;/^$/{s//default ${entry}/;H};x}" \
+		"${mountpoint}/$PMX_LOADER_CONF"
+
 }

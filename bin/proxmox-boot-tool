@@ -286,6 +286,13 @@ list_kernels() {
 	echo ""
 	echo "Automatically selected kernels:"
 	echo "$boot_kernels"
+
+	pinned_kernel="$(get_first_line "$PINNED_KERNEL_CONF")"
+	if [ -n "$pinned_kernel" ]; then
+		echo ""
+		echo "Pinned kernel:"
+		echo "${pinned_kernel}"
+	fi
 }
 
 usage() {
@@ -296,6 +303,8 @@ usage() {
 	warn "       $0 clean [--dry-run]"
 	warn "       $0 refresh [--hook <name>]"
 	warn "       $0 kernel <add|remove> <kernel-version>"
+	warn "       $0 kernel pin <kernel-version>"
+	warn "       $0 kernel unpin"
 	warn "       $0 kernel list"
 	warn "       $0 status [--quiet]"
 	warn "       $0 help"
@@ -322,6 +331,15 @@ help() {
 	echo ""
 	echo "    add/remove pve-kernel with ABI <kernel-version> to list of synced kernels, in addition to automatically selected ones."
 	echo "    NOTE: you need to manually run 'refresh' once you're finished with adding/removing kernels from the list"
+	echo ""
+	echo "USAGE: $0 kernel pin <kernel-version>"
+	echo ""
+	echo "    pin pve-kernel with ABI <kernel-version> as the default entry to be booted."
+	echo "    NOTE: you need to manually run 'refresh' once you're finished with pinning kernels"
+	echo ""
+	echo "USAGE: $0 kernel unpin"
+	echo ""
+	echo "    unpin sets the latest kernel as the default entry (undoes a previous pin)"
 	echo ""
 	echo "USAGE: $0 kernel list"
 	echo ""
@@ -392,6 +410,28 @@ status() {
 	fi
 }
 
+pin_kernel() {
+	ver="$1"
+
+	if [ -z "$ver" ]; then
+		warn "E: <kernel-version> is mandatory"
+		warn ""
+		exit 1
+	fi
+
+	if [ ! -e "/boot/vmlinuz-$ver" ]; then
+		warn "E: no kernel image found in /boot for '$ver', not setting default."
+		exit 1
+	fi
+	echo "$ver" > "$PINNED_KERNEL_CONF"
+	echo "Set kernel '$ver' $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+}
+
+unpin_kernel() {
+	rm -f "$PINNED_KERNEL_CONF"
+	echo "Removed $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+}
+
 if [ -z "$1" ]; then
     usage
     exit 0
@@ -458,6 +498,14 @@ case "$1" in
 			;;
 			'list')
 				list_kernels
+				exit 0
+			;;
+			'pin')
+				pin_kernel "$2"
+				exit 0
+			;;
+			'unpin')
+				unpin_kernel "$2"
 				exit 0
 			;;
 			*)
