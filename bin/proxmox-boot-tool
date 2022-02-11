@@ -437,15 +437,33 @@ pin_kernel() {
 		exit 1
 	fi
 	echo "$ver" > "$pin_file"
-	echo "Set kernel '$ver' in $pin_file. Use the 'refresh' command to update the ESPs."
+
+	if [ -f "${ESP_LIST}" ]; then
+		echo "Set kernel '$ver' in $pin_file. Use the 'refresh' command to update the ESPs."
+	else
+		next_boot_ver=$(get_first_line "${NEXT_BOOT_PIN}")
+		pin_ver="${next_boot_ver:-$ver}"
+		echo "Setting '$pin_ver' as grub default entry and running update-grub."
+		set_grub_default "$pin_ver"
+		update-grub
+	fi
 }
 
 unpin_kernel() {
 	rm -f "$NEXT_BOOT_PIN"
-	echo "Removed $NEXT_BOOT_PIN. Use the 'refresh' command to update the ESPs."
+	echo "Removed $NEXT_BOOT_PIN."
 	if [ -z "$1" ]; then
 		rm -f "$PINNED_KERNEL_CONF"
-		echo "Removed $PINNED_KERNEL_CONF. Use the 'refresh' command to update the ESPs."
+		echo "Removed $PINNED_KERNEL_CONF."
+	fi
+
+	if [ -f "${ESP_LIST}" ]; then
+		echo "Use the 'refresh' command to update the ESPs."
+	else
+		echo "Reset default grub entry and running update-grub."
+		pinned_kernel=$(get_first_line "${PINNED_KERNEL_CONF}")
+		set_grub_default "$pinned_kernel"
+		update-grub
 	fi
 }
 
