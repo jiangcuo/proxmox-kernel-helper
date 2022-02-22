@@ -98,7 +98,7 @@ format() {
 
 	part_basename=$(basename "$bdev")
 	if [ -z "$part_basename" ]; then
-		if [ $part != $bdev ]; then
+		if [ "$part" != "$bdev" ]; then
 		    symlinkmsg=" -> '$bdev'"
 		fi
 		warn "E: unable to determine basename of '$part'$symlinkmsg"
@@ -162,7 +162,7 @@ init() {
 	else
 		echo "Installing grub i386-pc target.."
 		grub-install.real \
-			--boot-directory $esp_mp \
+			--boot-directory "$esp_mp" \
 			--target i386-pc \
 			--no-floppy \
 			--bootloader-id='proxmox' \
@@ -183,7 +183,7 @@ _clean_impl() {
 		warn 'E: /dev/disk/by-uuid does not exist, aborting!'
 		exit 1
 	fi
-	echo -n "Checking whether ESP '$curr_uuid' exists.. "
+	printf "Checking whether ESP '%s' exists.. " "$curr_uuid" # avoid newline
 	if [ -e "/dev/disk/by-uuid/$curr_uuid" ]; then
 		echo "Found!"
 	else
