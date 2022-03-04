@@ -443,6 +443,13 @@ pin_kernel() {
 		warn "$boot_kernels"
 		exit 1
 	fi
+
+	if [ -e "$pin_file" ]; then
+		old_pin=$(get_first_line "${pin_file}")
+		if [ "$ver" != "$old_pin" ]; then
+			echo "Overriding previously pinned version '$old_pin' with '$ver'"
+		fi
+	fi
 	echo "$ver" > "$pin_file"
 
 	if [ -f "${ESP_LIST}" ]; then
