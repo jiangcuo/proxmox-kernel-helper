@@ -423,8 +423,11 @@ pin_kernel() {
 	pin_file="$2"
 
 	if [ -z "$ver" ]; then
+		boot_kernels="$(boot_kernel_list)"
 		warn "E: <kernel-version> is mandatory"
 		warn ""
+		warn "Possible Proxmox kernel versions are:"
+		warn "$boot_kernels"
 		exit 1
 	fi
 
@@ -433,7 +436,11 @@ pin_kernel() {
 	fi
 
 	if [ ! -e "/boot/vmlinuz-$ver" ]; then
+		boot_kernels="$(boot_kernel_list)"
 		warn "E: no kernel image found in /boot for '$ver', not setting default."
+		warn ""
+		warn "Possible Proxmox kernel versions are:"
+		warn "$boot_kernels"
 		exit 1
 	fi
 	echo "$ver" > "$pin_file"
