@@ -302,18 +302,35 @@ list_kernels() {
 }
 
 usage() {
-	warn "USAGE: $0 <commands> [ARGS]"
-	warn ""
-	warn "       $0 format <partition> [--force]"
-	warn "       $0 init <partition>"
-	warn "       $0 clean [--dry-run]"
-	warn "       $0 refresh [--hook <name>]"
-	warn "       $0 kernel <add|remove> <kernel-version>"
-	warn "       $0 kernel pin <kernel-version> [--next-boot]"
-	warn "       $0 kernel unpin [--next-boot]"
-	warn "       $0 kernel list"
-	warn "       $0 status [--quiet]"
-	warn "       $0 help"
+	subcmd="$1"
+	if [ -z "$subcmd" ]; then
+		warn "USAGE: $0 <commands> [ARGS]"
+		warn ""
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "format" ]; then
+		warn "  $0 format <partition> [--force]"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "init" ]; then
+		warn "  $0 init <partition>"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "clean" ]; then
+		warn "  $0 clean [--dry-run]"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "refresh" ]; then
+		warn "  $0 refresh [--hook <name>]"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "kernel" ]; then
+		warn "  $0 kernel <add|remove> <kernel-version>"
+		warn "  $0 kernel pin <kernel-version> [--next-boot]"
+		warn "  $0 kernel unpin [--next-boot]"
+		warn "  $0 kernel list"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "status" ]; then
+		warn "  $0 status [--quiet]"
+	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "help" ]; then
+		warn "  $0 help"
+	fi
 }
 
 help() {
@@ -492,7 +509,7 @@ case "$1" in
 		if [ -z "$1"  ]; then
 			warn "E: <partition> is mandatory."
 			warn ""
-			usage
+			usage "format"
 			exit 1
 		fi
 		format "$@"
@@ -504,7 +521,7 @@ case "$1" in
 		if [ -z "$1"  ]; then
 			warn "E: <partition> is mandatory."
 			warn ""
-			usage
+			usage "init"
 			exit 1
 		fi
 		init "$@"
@@ -522,7 +539,7 @@ case "$1" in
 		elif [ "$#" -eq 2 ] && [ "$1" = "--hook" ]; then
 			refresh "$2"
 		else
-			usage
+			usage "refresh"
 			exit 1
 		fi
 		exit 0
@@ -532,7 +549,7 @@ case "$1" in
 		if [ -z "$1" ]; then
 			warn "E: subcommand is mandatory for 'kernel'."
 			warn ""
-			usage
+			usage "kernel"
 			exit 1
 		fi
 		cmd="$1"
@@ -555,7 +572,7 @@ case "$1" in
 				elif [ "$#" -eq 2 ]; then
 					pin_kernel "$2"
 				else
-					usage
+					usage "kernel"
 					exit 1
 				fi
 				exit 0
@@ -566,7 +583,7 @@ case "$1" in
 				elif [ "$#" -eq 1 ]; then
 					unpin_kernel
 				else
-					usage
+					usage "kernel"
 					exit 1
 				fi
 				exit 0
@@ -574,7 +591,7 @@ case "$1" in
 			*)
 				warn "E: invalid 'kernel' subcommand '$cmd'."
 				warn ""
-				usage
+				usage "kernel"
 				exit 1
 			;;
 		esac
@@ -588,7 +605,7 @@ case "$1" in
 			shift
 			status
 		else
-			usage
+			usage "status"
 			exit 1
 		fi
 		exit 0
