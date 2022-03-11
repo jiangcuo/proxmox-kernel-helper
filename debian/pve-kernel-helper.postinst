@@ -12,6 +12,10 @@ case "$1" in
             # FIXME: remove with next version, this is for an internal-only distributed update
             update-initramfs -uk 5.15.19-2-pve || true
         fi
+        if [ -e /etc/kernel/pve-efiboot-manual-kernels ] && [ ! -e /etc/kernel/proxmox-boot-manual-kernels ]; then
+            echo "$0: legacy manual kernel list /etc/kernel/pve-efiboot-manual-kernels found moving to /etc/kernel/proxmox-boot-manual-kernels" 1>&2
+            mv /etc/kernel/pve-efiboot-manual-kernels /etc/kernel/proxmox-boot-manual-kernels
+        fi
         ;;
 esac
 
