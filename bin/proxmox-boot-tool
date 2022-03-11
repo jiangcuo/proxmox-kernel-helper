@@ -124,7 +124,7 @@ format() {
 	exit 0
 }
 
-init() {
+init_bootloader() {
 	part="$1"
 
 	_get_partition_info "$part"
@@ -174,8 +174,20 @@ init() {
 	echo "Adding '$part' to list of synced ESPs.."
 	_add_entry_to_list_file "$ESP_LIST" "$UUID"
 
-	echo "Refreshing kernels and initrds.."
-	refresh
+}
+
+reinit() {
+	if ! (echo "${curr_uuid}" | grep -qE '[0-9a-fA-F]{4}-[0-9a-fA-F]{4}'); then
+		warn "WARN: ${curr_uuid} read from ${ESP_LIST} does not look like a VFAT-UUID - skipping"
+		return
+	fi
+
+	path="/dev/disk/by-uuid/$curr_uuid"
+	if [ ! -e "${path}" ]; then
+		warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
+		return
+	fi
+	init_bootloader "$path"
 }
 
 _clean_impl() {
@@ -313,6 +325,9 @@ usage() {
 	if [ -z "$subcmd" ] || [ "$subcmd" = "init" ]; then
 		warn "  $0 init <partition>"
 	fi
+	if [ -z "$subcmd" ] || [ "$subcmd" = "reinit" ]; then
+		warn "  $0 reinit"
+	fi
 	if [ -z "$subcmd" ] || [ "$subcmd" = "clean" ]; then
 		warn "  $0 clean [--dry-run]"
 	fi
@@ -341,6 +356,10 @@ help() {
 	echo "USAGE: $0 init <partition>"
 	echo ""
 	echo "    initialize EFI system partition at <partition> for automatic synchronization of pve-kernels and their associated initrds."
+	echo ""
+	echo "USAGE: $0 reinit"
+	echo ""
+	echo "    reinitialize all configured EFI system partitions from $ESP_LIST."
 	echo ""
 	echo "USAGE: $0 clean [--dry-run]"
 	echo ""
@@ -546,7 +565,21 @@ case "$1" in
 			usage "init"
 			exit 1
 		fi
-		init "$@"
+		init_bootloader "$@"
+		echo "Refreshing kernels and initrds.."
+		refresh
+		exit 0
+	;;
+	'reinit')
+		reexec_in_mountns "$@"
+		shift
+		if [ "$#" -eq 1 ]; then
+			warn "E: no arguments allowed."
+			warn ""
+			usage "reinit"
+			exit 1
+		fi
+                loop_esp_list reinit "$@"
 		exit 0
 	;;
 	'clean')
