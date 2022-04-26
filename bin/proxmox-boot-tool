@@ -435,6 +435,23 @@ status() {
 	fi
 }
 
+_ask_interactive_refresh() {
+	msg="$1"
+
+	if [ -t 0 ] && [ -t 1 ]; then # check if interactive
+		echo "$msg."
+		printf "Refresh the actual boot ESPs now? [yN] "
+		read -r do_refresh
+		if [ "$do_refresh" != "${do_refresh#[Yy]}" ] ;then
+			refresh
+		else
+			echo "Skip auto-refresh, you can call it any time to enact boot changes."
+		fi
+	else
+		echo "$msg. Use the 'refresh' command to update the ESPs."
+	fi
+}
+
 pin_kernel() {
 	ver="$1"
 	pin_file="$2"
@@ -470,7 +487,7 @@ pin_kernel() {
 	echo "$ver" > "$pin_file"
 
 	if [ -f "${ESP_LIST}" ]; then
-		echo "Set kernel '$ver' in $pin_file. Use the 'refresh' command to update the ESPs."
+		_ask_interactive_refresh "Set kernel '$ver' in $pin_file"
 	else
 		next_boot_ver=$(get_first_line "${NEXT_BOOT_PIN}")
 		pin_ver="${next_boot_ver:-$ver}"
@@ -481,15 +498,20 @@ pin_kernel() {
 }
 
 unpin_kernel() {
+	last_pin=$(get_first_line "${NEXT_BOOT_PIN}")
 	rm -f "$NEXT_BOOT_PIN"
 	echo "Removed $NEXT_BOOT_PIN."
 	if [ -z "$1" ]; then
+		old_pin=$(get_first_line "${PINNED_KERNEL_CONF}")
+		last_pin=${old_pin:-$last_pin}
 		rm -f "$PINNED_KERNEL_CONF"
 		echo "Removed $PINNED_KERNEL_CONF."
 	fi
 
 	if [ -f "${ESP_LIST}" ]; then
-		echo "Use the 'refresh' command to update the ESPs."
+		if [ -n "$last_pin" ]; then
+			_ask_interactive_refresh "Unpinned kernel '$last_pin'"
+		fi
 	else
 		echo "Reset default grub entry and running update-grub."
 		pinned_kernel=$(get_first_line "${PINNED_KERNEL_CONF}")
