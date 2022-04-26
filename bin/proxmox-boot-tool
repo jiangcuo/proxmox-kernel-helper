@@ -591,6 +591,7 @@ case "$1" in
 			'pin')
 				if [ "$#" -eq 3 ] && [ "$3" = '--next-boot' ]; then
 					pin_kernel "$2" "${NEXT_BOOT_PIN}"
+					echo "Pinned for next boot only."
 				elif [ "$#" -eq 2 ]; then
 					pin_kernel "$2"
 				else
