@@ -1,0 +1,2 @@
+pve-kernel-helper: no-manual-page [usr/sbin/grub-install]
+pve-kernel-helper: no-manual-page [usr/sbin/pve-efiboot-tool]
