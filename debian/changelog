@@ -1,3 +1,9 @@
+pve-kernel-5.15 (7.2-10) bullseye; urgency=medium
+
+  * ABI bump for 5.15.53-1-pve
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 29 Aug 2022 18:23:15 +0200
+
 pve-kernel-5.15 (7.2-9) bullseye; urgency=medium
 
   * ABI bump for 5.15.39-4-pve
