@@ -8,10 +8,6 @@ case "$1" in
             echo "$0: legacy ESP list /etc/kernel/pve-efiboot-uuids found moving to /etc/kernel/proxmox-boot-uuids" 1>&2
             mv /etc/kernel/pve-efiboot-uuids /etc/kernel/proxmox-boot-uuids
         fi
-        if [ -e /boot/initrd.img-5.15.19-2-pve ] && [ -n "$2" ] && dpkg --compare-versions "$2" 'lt' '7.1-11~'; then
-            # FIXME: remove with next version, this is for an internal-only distributed update
-            update-initramfs -uk 5.15.19-2-pve || true
-        fi
         if [ -e /etc/kernel/pve-efiboot-manual-kernels ] && [ ! -e /etc/kernel/proxmox-boot-manual-kernels ]; then
             echo "$0: legacy manual kernel list /etc/kernel/pve-efiboot-manual-kernels found moving to /etc/kernel/proxmox-boot-manual-kernels" 1>&2
             mv /etc/kernel/pve-efiboot-manual-kernels /etc/kernel/proxmox-boot-manual-kernels
