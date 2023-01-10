@@ -4,8 +4,8 @@ set -e
 
 case "$1" in
     install|upgrade)
-        if ! dpkg -S /usr/sbin/grub-install|grep -q 'diversion by pve-kernel-helper'; then
-            dpkg-divert --package pve-kernel-helper --add --rename \
+        if ! dpkg -S /usr/sbin/grub-install|grep -q 'diversion by proxmox-kernel-helper'; then
+            dpkg-divert --package proxmox-kernel-helper --add --rename \
                 --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
         fi
     ;;

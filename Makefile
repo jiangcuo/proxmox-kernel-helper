@@ -2,7 +2,7 @@ include /usr/share/dpkg/pkg-info.mk
 
 GITVERSION:=$(shell git rev-parse HEAD)
 
-DEB=pve-kernel-helper_${DEB_VERSION_UPSTREAM_REVISION}_all.deb
+DEB=proxmox-kernel-helper_${DEB_VERSION_UPSTREAM_REVISION}_all.deb
 
 BUILD_DIR=build
 

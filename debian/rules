@@ -7,6 +7,10 @@
 %:
 	dh $@
 
+override_dh_install:
+	mv debian/proxmox-kernel-helper debian/tmp
+	dh_install
+
 override_dh_installsystemd:
 	dh_installsystemd --no-start
 

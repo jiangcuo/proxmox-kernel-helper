@@ -4,13 +4,13 @@ set -e
 
 case "$1" in
   remove|abort-install|disappear)
-	dpkg-divert --package pve-kernel-helper --remove --rename \
+	dpkg-divert --package proxmox-kernel-helper --remove --rename \
            --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
     ;;
   abort-upgrade)
        if [ -n "$2" ]; then
            if dpkg --compare-versions "$2" lt "6.4-1~"; then
-               dpkg-divert --package pve-kernel-helper --remove --rename \
+               dpkg-divert --package proxmox-kernel-helper --remove --rename \
                    --divert /usr/sbin/grub-install.real /usr/sbin/grub-install
            fi
        fi
