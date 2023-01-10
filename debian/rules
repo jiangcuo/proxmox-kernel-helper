@@ -4,11 +4,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-debian/control: $(wildcard debian/*.in)
-	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' < debian/postrm.in > debian/pve-kernel-${KERNEL_VER}.postrm
-	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' -e 's/@KERNEL_VER@/${KERNEL_VER}/g' < debian/postinst.in > debian/pve-kernel-${KERNEL_VER}.postinst
-	sed -e 's/@KERNEL_ABI@/${KERNEL_ABI}/g' -e 's/@KERNEL_VER@/${KERNEL_VER}/g' < debian/control.in > debian/control
-
 %:
 	dh $@
 

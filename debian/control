@@ -1,0 +1,22 @@
+Source: proxmox-kernel-helper
+Section: admin
+Priority: optional
+Build-Depends: debhelper (>=12~),
+               lintian,
+               sed,
+Maintainer: Proxmox Support Team <support@proxmox.com>
+
+Package: pve-kernel-helper
+Architecture: all
+Section: admin
+Priority: optional
+Depends: dosfstools,
+         gdisk,
+         systemd,
+         udev,
+         ${misc:Depends},
+Breaks: proxmox-ve (<< 6.0-2~)
+Replaces: proxmox-ve (<< 6.0-2~)
+Description: Function for various kernel maintenance tasks.
+ This package includes kernel-hooks for marking certain kernels as
+ NeverAutoRemove and helpers for systemd-boot
