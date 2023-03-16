@@ -2,7 +2,7 @@
 
 set -e
 
-. /usr/share/pve-kernel-helper/scripts/functions
+. /usr/share/proxmox-kernel-helper/scripts/functions
 
 _add_entry_to_list_file() {
 	file="$1"

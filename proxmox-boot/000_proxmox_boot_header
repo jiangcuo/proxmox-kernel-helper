@@ -1,7 +1,7 @@
 #! /bin/sh
 set -e
 
-. /usr/share/pve-kernel-helper/scripts/functions
+. /usr/share/proxmox-kernel-helper/scripts/functions
 
 if proxmox-boot-tool status --quiet; then
 	cat <<- EOF

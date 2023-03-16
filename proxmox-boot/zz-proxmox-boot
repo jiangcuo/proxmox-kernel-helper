@@ -28,7 +28,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM QUIT
 
-. /usr/share/pve-kernel-helper/scripts/functions
+. /usr/share/proxmox-kernel-helper/scripts/functions
 
 LOADER_TITLE="Proxmox Virtual Environment"
 if [ -d /etc/pve/ ]; then

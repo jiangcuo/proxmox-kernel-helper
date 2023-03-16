@@ -7,7 +7,7 @@ SYSTEMD_SERVICES = proxmox-boot-cleanup.service
 POSTINSTHOOKDIR = ${DESTDIR}/etc/kernel/postinst.d
 POSTRMHOOKDIR = ${DESTDIR}/etc/kernel/postrm.d
 POSTINITRAMFSHOOKDIR = ${DESTDIR}/etc/initramfs/post-update.d
-SHARE_SCRIPTDIR = ${DESTDIR}/usr/share/pve-kernel-helper/scripts
+SHARE_SCRIPTDIR = ${DESTDIR}/usr/share/proxmox-kernel-helper/scripts
 GRUB_CFG_DIR = ${DESTDIR}/etc/grub.d
 SERVICE_DIR = ${DESTDIR}/lib/systemd/system
 

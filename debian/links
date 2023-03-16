@@ -1,1 +1,3 @@
 /usr/sbin/proxmox-boot-tool /usr/sbin/pve-efiboot-tool
+# for upgrade compat, can be removed with 8.0
+/usr/share/proxmox-kernel-helper /usr/share/pve-kernel-helper
