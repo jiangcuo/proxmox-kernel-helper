@@ -1,8 +1,8 @@
-proxmox-kernel-helper (7.3-2) bullseye; urgency=medium
+proxmox-kernel-helper (7.4-1) bullseye; urgency=medium
 
   * extract kernel helper and boot tool from kernel meta package
 
- -- Proxmox Support Team <support@proxmox.com>  Tue, 10 Jan 2023 16:08:16 +0100
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 20 Mar 2023 14:23:16 +0100
 
 pve-kernel-6.1 (7.3-2) bullseye; urgency=medium
 
