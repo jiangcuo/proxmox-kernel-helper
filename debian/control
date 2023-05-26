@@ -1,7 +1,7 @@
 Source: proxmox-kernel-helper
 Section: admin
 Priority: optional
-Build-Depends: debhelper (>=12~),
+Build-Depends: debhelper-compat (=13),
                lintian,
 Maintainer: Proxmox Support Team <support@proxmox.com>
 
