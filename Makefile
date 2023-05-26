@@ -3,6 +3,7 @@ include /usr/share/dpkg/pkg-info.mk
 PACKAGE=proxmox-kernel-helper
 BUILDDIR=build
 
+DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 DEB=$(PACKAGE)_$(DEB_VERSION)_all.deb
 
 SUBDIRS = proxmox-boot bin
@@ -23,6 +24,16 @@ $(BUILDDIR): debian
 $(DEB): $(BUILDDIR)
 	cd $(BUILDDIR); dpkg-buildpackage -b -uc -us
 	lintian $(DEB)
+
+dsc: clean
+	$(MAKE) $(DSC)
+	lintian $(DSC)
+
+$(DSC): $(BUILDDIR)
+	cd $(BUILDDIR); dpkg-buildpackage -S -uc -us -d
+
+sbuild: $(DSC)
+	sbuild $<
 
 .PHONY: install
 install: $(SUBDIRS)
