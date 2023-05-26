@@ -3,7 +3,6 @@ Section: admin
 Priority: optional
 Build-Depends: debhelper (>=12~),
                lintian,
-               sed,
 Maintainer: Proxmox Support Team <support@proxmox.com>
 
 Package: proxmox-kernel-helper
