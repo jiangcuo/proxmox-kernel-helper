@@ -1,10 +1,9 @@
 include /usr/share/dpkg/pkg-info.mk
 
-GITVERSION:=$(shell git rev-parse HEAD)
+PACKAGE=proxmox-kernel-helper
+BUILDDIR=build
 
-DEB=proxmox-kernel-helper_$(DEB_VERSION_UPSTREAM_REVISION)_all.deb
-
-BUILD_DIR=build
+DEB=$(PACKAGE)_$(DEB_VERSION)_all.deb
 
 SUBDIRS = proxmox-boot bin
 
@@ -15,12 +14,14 @@ all: $(SUBDIRS)
 .PHONY: deb
 deb: $(DEB)
 
-$(DEB): debian
-	rm -rf $(BUILD_DIR)
-	mkdir -p $(BUILD_DIR)/debian
-	rsync -a * $(BUILD_DIR)/
-	echo "git clone git://git.proxmox.com/git/proxmox-kernel-helper.git\\ngit checkout $(GITVERSION)" > $(BUILD_DIR)/debian/SOURCE
-	cd $(BUILD_DIR); dpkg-buildpackage -b -uc -us
+$(BUILDDIR): debian
+	rm -rf $@ $@.tmp
+	rsync -a * $@.tmp/
+	echo "git clone git://git.proxmox.com/git/proxmox-kernel-helper.git\\ngit checkout $$(git rev-parse HEAD)" > $@.tmp/debian/SOURCE
+	mv $@.tmp $@
+
+$(DEB): $(BUILDDIR)
+	cd $(BUILDDIR); dpkg-buildpackage -b -uc -us
 	lintian $(DEB)
 
 .PHONY: install
@@ -34,4 +35,4 @@ upload: $(DEB)
 .PHONY: clean distclean
 distclean: clean
 clean:
-	rm -rf *~ $(BUILD_DIR) *.deb *.dsc *.changes *.buildinfo
+	rm -rf *~ $(PACKAGE)-[0-9]*/ $(PACKAGE)*.tar* *.deb *.dsc *.changes *.build *.buildinfo
