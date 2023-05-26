@@ -3,6 +3,7 @@ Section: admin
 Priority: optional
 Build-Depends: debhelper-compat (=13),
                lintian,
+Standards-Version: 4.6.2
 Maintainer: Proxmox Support Team <support@proxmox.com>
 
 Package: proxmox-kernel-helper
