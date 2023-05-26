@@ -1,9 +1,9 @@
+debian/proxmox-simpledrm /usr/share/initramfs-tools/modules.d
 etc/grub.d/000_proxmox_boot_header
+etc/initramfs/post-update.d/proxmox-boot-sync
 etc/kernel/postinst.d/*
 etc/kernel/postrm.d/*
-etc/initramfs/post-update.d/proxmox-boot-sync
 lib/systemd/system/proxmox-boot-cleanup.service
-usr/sbin/proxmox-boot-tool
 usr/sbin/grub-install
+usr/sbin/proxmox-boot-tool
 usr/share/proxmox-kernel-helper/scripts/functions
-debian/proxmox-simpledrm /usr/share/initramfs-tools/modules.d
