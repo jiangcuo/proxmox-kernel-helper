@@ -153,6 +153,12 @@ init_bootloader() {
 	if [ -d /sys/firmware/efi ]; then
 		echo "Installing systemd-boot.."
 		mkdir -p "$esp_mp/$PMX_ESP_DIR"
+		if ! command -V bootctl >/dev/null 2>&1 ;
+		then
+			warn "E: bootctl is not available - make sure systemd-boot is installed"
+			exit 1
+		fi
+
 		bootctl --graceful --path "$esp_mp" install
 
 		echo "Configuring systemd-boot.."
