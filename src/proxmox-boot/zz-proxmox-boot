@@ -191,6 +191,28 @@ remove_old_kernels_legacy() {
 
 }
 
+disable_systemd_boot_hook() {
+
+	if [ ! -f "${ESP_LIST}" ]; then
+		return
+	fi
+
+	marker="# This hookfile has been disabled by proxmox-boot-tool"
+	for hookfile in \
+		"/etc/initramfs/post-update.d/systemd-boot" \
+		"/etc/kernel/postinst.d/zz-systemd-boot" \
+		"/etc/kernel/postrm.d/zz-systemd-boot" ; \
+	do
+		if ! grep -q "$marker" "$hookfile"; then
+			warn "	Disabling upstream hook $hookfile"
+			printf "#!/bin/sh\n\n%s\nexit 0\n" "$marker" > "$hookfile.pbt.tmp"
+			cat "$hookfile" >> "$hookfile.pbt.tmp"
+			mv "$hookfile.pbt.tmp" "$hookfile"
+		fi
+	done
+
+}
+
 set -- $DEB_MAINT_PARAMS
 mode="${1#\'}"
 mode="${mode%\'}"
@@ -203,12 +225,14 @@ case $0:$mode in
 		reexec_in_mountns "$@"
 		BOOT_KVERS="$(boot_kernel_list "$@")"
 		update_esps
+		disable_systemd_boot_hook
 	;;
 	 */postrm.d/*:|*/postrm.d/*:remove)
 		reexec_in_mountns "$@"
 		# no newly installed kernel
 		BOOT_KVERS="$(boot_kernel_list)"
 		update_esps
+		disable_systemd_boot_hook
 	;;
 esac
 
