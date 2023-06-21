@@ -1,3 +1,13 @@
+proxmox-kernel-helper (8.0.1) bookworm; urgency=medium
+
+  * boot-tool: disarm upstream systemd-boot hookscripts
+
+  * proxmox-boot: warn on missing systemd-boot package
+
+  * d/control: add systemd-boot to suggested dependencies
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 21 Jun 2023 17:27:53 +0200
+
 proxmox-kernel-helper (8.0.0) bookworm; urgency=medium
 
   * re-build for Debian 12 Bookworm based Proxmox projects
