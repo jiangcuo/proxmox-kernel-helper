@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.0.2) bookworm; urgency=medium
+
+  * boot tool: always check first if hookfile exists
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 22 Jun 2023 08:37:27 +0200
+
 proxmox-kernel-helper (8.0.1) bookworm; urgency=medium
 
   * boot-tool: disarm upstream systemd-boot hookscripts
