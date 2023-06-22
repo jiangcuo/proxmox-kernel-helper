@@ -207,7 +207,7 @@ disable_systemd_boot_hook() {
 	do
 		if [ -e "$hookfile" ] && ! grep -q "$marker" "$hookfile"; then
 			warn "	Disabling upstream hook $hookfile"
-			printf "#!/bin/sh\n\n%s\nexit 0\n" "$marker" > "$hookfile.pbt.tmp"
+			printf '#!/bin/sh\n\n%s\nexit 0\n' "$marker" > "$hookfile.pbt.tmp"
 			cat "$hookfile" >> "$hookfile.pbt.tmp"
 			mv "$hookfile.pbt.tmp" "$hookfile"
 		fi
