@@ -205,7 +205,7 @@ disable_systemd_boot_hook() {
 		"/etc/kernel/postinst.d/zz-systemd-boot" \
 		"/etc/kernel/postrm.d/zz-systemd-boot" ; \
 	do
-		if ! grep -q "$marker" "$hookfile"; then
+		if [ -e "$hookfile" ] && ! grep -q "$marker" "$hookfile"; then
 			warn "	Disabling upstream hook $hookfile"
 			printf "#!/bin/sh\n\n%s\nexit 0\n" "$marker" > "$hookfile.pbt.tmp"
 			cat "$hookfile" >> "$hookfile.pbt.tmp"
