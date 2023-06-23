@@ -27,7 +27,7 @@ _remove_entry_from_list_file() {
 	fi
 
 	if [ -e "$file" ]; then
-		grep -vFx "$entry" "$file" > "$file.new" || true
+		grep -vFx -- "$entry" "$file" > "$file.new" || true
 		mv "$file.new" "$file"
 	else
 		echo "'$file' does not exist.."
@@ -279,7 +279,7 @@ remove_kernel() {
 		exit 1
 	fi
 
-	if grep -sqFx "$ver" "$MANUAL_KERNEL_LIST"; then
+	if grep -sqFx -- "$ver" "$MANUAL_KERNEL_LIST"; then
 		_remove_entry_from_list_file "$MANUAL_KERNEL_LIST" "$ver"
 		echo "Removed kernel '$ver' from manual kernel list. Use the 'refresh' command to update the ESPs."
 	else
