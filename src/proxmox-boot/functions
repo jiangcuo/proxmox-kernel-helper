@@ -30,8 +30,8 @@ kernel_keep_versions() {
 	eval "$(apt-config shell DPKG Dir::bin::dpkg/f)"
 	test -n "$DPKG" || DPKG="/usr/bin/dpkg"
 
-	list="$("${DPKG}" -l | awk '/^[ih][^nc][ ]+pve-kernel-[0-9]+\./ && $2 !~ /-dbg(:.*)?$/ && $2 !~ /-dbgsym(:.*)?$/ { print $2; }' \
-	   | sed -e 's#^pve-kernel-##' -e 's#:[^:]\+ # #')"
+	list="$("${DPKG}" -l | awk '/^[ih][^nc][ ]+(proxmox|pve)-kernel-[0-9]+\./ && $2 !~ /-dbg(:.*)?$/ && $2 !~ /-dbgsym(:.*)?$/ { print $2; }' \
+	   | sed -e 's#^pve-kernel-##' -e 's#^proxmox-kernel-##' -e 's#:[^:]\+ # #')"
 
 	sorted_list="$(echo "$list" | sort --unique --reverse --version-sort)"
 
