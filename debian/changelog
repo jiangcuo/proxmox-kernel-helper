@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.0.3) bookworm; urgency=medium
+
+  * handle rename of Proxmox kernel packages
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 01 Aug 2023 12:25:18 +0200
+
 proxmox-kernel-helper (8.0.2) bookworm; urgency=medium
 
   * boot tool: always check first if hookfile exists
