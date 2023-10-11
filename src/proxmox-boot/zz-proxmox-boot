@@ -44,7 +44,7 @@ fi
 update_esps() {
 	if [ ! -f "${ESP_LIST}" ]; then
 	    warn "No ${ESP_LIST} found, skipping ESP sync."
-	    exit 0
+	    return
 	fi
 	if [ -f /etc/kernel/cmdline ]; then
 		# we can have cmdline files with multiple or no new line at all, handle both!
