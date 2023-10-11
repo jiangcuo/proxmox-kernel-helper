@@ -215,6 +215,23 @@ disable_systemd_boot_hook() {
 
 }
 
+check_grub_efi_package() {
+
+	if [ -f "${ESP_LIST}" ]; then
+		return
+	fi
+
+	if [ ! -d /sys/firmware/efi ]; then
+		return
+	fi
+
+	if [ -f /usr/share/doc/grub-efi-amd64/changelog.Debian.gz ]; then
+		return
+	fi
+	warn "uefi-booted system, without grub-efi-amd64 package - /boot/efi will not be updated"
+
+}
+
 set -- $DEB_MAINT_PARAMS
 mode="${1#\'}"
 mode="${mode%\'}"
@@ -228,6 +245,7 @@ case $0:$mode in
 		BOOT_KVERS="$(boot_kernel_list "$@")"
 		update_esps
 		disable_systemd_boot_hook
+		check_grub_efi_package
 	;;
 	 */postrm.d/*:|*/postrm.d/*:remove)
 		reexec_in_mountns "$@"
@@ -235,6 +253,7 @@ case $0:$mode in
 		BOOT_KVERS="$(boot_kernel_list)"
 		update_esps
 		disable_systemd_boot_hook
+		check_grub_efi_package
 	;;
 esac
 
