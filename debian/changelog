@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.0.4) bookworm; urgency=medium
+
+  * proxmox-boot-tool: check if correct grub meta-package is installed
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 06 Nov 2023 18:00:25 +0100
+
 proxmox-kernel-helper (8.0.3) bookworm; urgency=medium
 
   * handle rename of Proxmox kernel packages
