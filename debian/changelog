@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.0.5) bookworm; urgency=medium
+
+  * drop auto-adding the simplefb module to initramfs
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 16 Nov 2023 16:28:45 +0100
+
 proxmox-kernel-helper (8.0.4) bookworm; urgency=medium
 
   * proxmox-boot-tool: check if correct grub meta-package is installed
