@@ -21,6 +21,7 @@ generate_apt_config() {
 		escaped_kver="$(echo "$kernel" |  sed -e 's#\([\.\+]\)#\\\1#g')"
 		echo "   \"^pve-kernel-${escaped_kver}$\";"
 		echo "   \"^proxmox-kernel-${escaped_kver}$\";"
+		echo "   \"^proxmox-kernel-${escaped_kver}-signed$\";"
 	done
 	echo '};'
 	if [ "${APT_AUTO_REMOVAL_KERNELS_DEBUG:-false}" = 'true' ]; then
