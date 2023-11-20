@@ -77,7 +77,11 @@ update_esp_func() {
 		{ warn "creation of mountpoint ${mountpoint} failed - skipping"; return; }
 	mount "${path}" "${mountpoint}" || \
 		{ warn "mount of ${path} failed - skipping"; return; }
-	if [ -d /sys/firmware/efi ]; then
+
+	if [ -e "${mountpoint}/EFI/proxmox/grubx64.efi" ]; then
+		grub=1
+	fi
+	if [ -d /sys/firmware/efi ] && [ "$grub" != 1 ]; then
 		if [ ! -f "${mountpoint}/$PMX_LOADER_CONF" ]; then
 			warn "${path} contains no loader.conf - skipping"
 			return
@@ -91,14 +95,20 @@ update_esp_func() {
 		return
 	fi
 	warn "Copying and configuring kernels on ${path}"
-	copy_and_config_kernels "${mountpoint}"
+	copy_and_config_kernels "${mountpoint}" "$grub"
 
 	pinned_kernel=$(get_first_line "${PINNED_KERNEL_CONF}")
 
 	if [ -e "${NEXT_BOOT_PIN}" ]; then
 	    pinned_kernel=$(get_first_line "${NEXT_BOOT_PIN}")
 	fi
-	if [ -d /sys/firmware/efi ]; then
+	if [ "$grub" = 1 ]; then
+		set_grub_default "${pinned_kernel}"
+		remove_old_kernels_legacy "${mountpoint}"
+		mount --bind "${mountpoint}" "/boot"
+		update-grub
+		umount /boot
+	elif [ -d /sys/firmware/efi ]; then
 		set_systemd_boot_default "${mountpoint}" "${pinned_kernel}"
 		remove_old_kernels_efi "${mountpoint}"
 	else
@@ -118,7 +128,7 @@ update_esp_func() {
 
 copy_and_config_kernels() {
 	esp="$1"
-
+	grub="$2"
 
 	for kver in ${BOOT_KVERS}; do
 
@@ -134,7 +144,7 @@ copy_and_config_kernels() {
 			continue
 		fi
 
-		if [ -d /sys/firmware/efi ]; then
+		if [ -d /sys/firmware/efi ] && [ "$grub" != 1 ]; then
 
 			warn "	Copying kernel and creating boot-entry for ${kver}"
 			KERNEL_ESP_DIR="${PMX_ESP_DIR}/${kver}"

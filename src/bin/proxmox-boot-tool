@@ -126,6 +126,7 @@ format() {
 
 init_bootloader() {
 	part="$1"
+	mode="$2"
 
 	_get_partition_info "$part"
 
@@ -150,21 +151,39 @@ init_bootloader() {
 	echo "Mounting '$part' on '$esp_mp'."
 	mount -t vfat "$part" "$esp_mp"
 
-	if [ -d /sys/firmware/efi ]; then
-		echo "Installing systemd-boot.."
-		mkdir -p "$esp_mp/$PMX_ESP_DIR"
-		if ! command -V bootctl >/dev/null 2>&1 ;
-		then
-			warn "E: bootctl is not available - make sure systemd-boot is installed"
-			exit 1
+	if [ -z "$mode" ]; then
+		if [ -e "$esp_mp/EFI/proxmox/grubx64.efi" ]; then
+			# for reinit support
+			mode=grub
 		fi
+	fi
 
-		bootctl --graceful --path "$esp_mp" install
+	if [ -d /sys/firmware/efi ]; then
+		if [ -n "$mode" ] && [ "$mode" = "grub" ]; then
+			echo "Installing grub x86_64 target.."
+			grub-install.real \
+				--boot-directory "${esp_mp}" \
+				--target x86_64-efi \
+				--no-floppy \
+				--efi-directory "${esp_mp}" \
+				--bootloader-id 'proxmox' \
+				"/dev/$PKNAME"
+		else
+			echo "Installing systemd-boot.."
+			mkdir -p "$esp_mp/$PMX_ESP_DIR"
+			if ! command -V bootctl >/dev/null 2>&1 ;
+			then
+				warn "E: bootctl is not available - make sure systemd-boot is installed"
+				exit 1
+			fi
 
-		echo "Configuring systemd-boot.."
-		echo "timeout 3" > "$esp_mp/$PMX_LOADER_CONF.tmp"
-		echo "default proxmox-*" >> "$esp_mp/$PMX_LOADER_CONF.tmp"
-		mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
+			bootctl --graceful --path "$esp_mp" install
+
+			echo "Configuring systemd-boot.."
+			echo "timeout 3" > "$esp_mp/$PMX_LOADER_CONF.tmp"
+			echo "default proxmox-*" >> "$esp_mp/$PMX_LOADER_CONF.tmp"
+			mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
+		fi
 	else
 		echo "Installing grub i386-pc target.."
 		grub-install.real \
@@ -193,7 +212,7 @@ reinit() {
 		warn "WARN: ${path} does not exist - clean '${ESP_LIST}'! - skipping"
 		return
 	fi
-	init_bootloader "$path"
+	init_bootloader "$path" "$mode"
 }
 
 _clean_impl() {
@@ -329,7 +348,7 @@ usage() {
 		warn "  $0 format <partition> [--force]"
 	fi
 	if [ -z "$subcmd" ] || [ "$subcmd" = "init" ]; then
-		warn "  $0 init <partition>"
+		warn "  $0 init <partition> [grub]"
 	fi
 	if [ -z "$subcmd" ] || [ "$subcmd" = "reinit" ]; then
 		warn "  $0 reinit"
