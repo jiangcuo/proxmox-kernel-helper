@@ -1,3 +1,10 @@
+proxmox-kernel-helper (8.0.7) bookworm; urgency=medium
+
+  * grub-wrapper: don't fail on reinit/refresh error to avoid failing an
+    upgrade just due to other boot-loaded being used
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Nov 2023 09:18:54 +0100
+
 proxmox-kernel-helper (8.0.6) bookworm; urgency=medium
 
   * add support for grub-on-esp (re)init
