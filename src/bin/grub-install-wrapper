@@ -10,8 +10,9 @@ if proxmox-boot-tool status --quiet; then
             MARKER_FILE="/tmp/proxmox-boot-tool.dpkg.marker"
             if [ ! -e "$MARKER_FILE" ]; then
                 warn "This system is booted via proxmox-boot-tool, running proxmox-boot-tool init for all configured bootdisks"
-                proxmox-boot-tool reinit
-                proxmox-boot-tool refresh
+                # can fail for various reasons, but we don't want to fail the upgrade..
+                proxmox-boot-tool reinit || true
+                proxmox-boot-tool refresh || true
                 touch "$MARKER_FILE"
                 exit 0
             else
