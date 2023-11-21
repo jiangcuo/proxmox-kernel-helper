@@ -166,6 +166,7 @@ init_bootloader() {
 				--target x86_64-efi \
 				--no-floppy \
 				--efi-directory "${esp_mp}" \
+				--removable \
 				--bootloader-id 'proxmox' \
 				"/dev/$PKNAME"
 		else
