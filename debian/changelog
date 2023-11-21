@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.0.9) bookworm; urgency=medium
+
+  * add dedicated removable installation
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 21 Nov 2023 21:24:04 +0100
+
 proxmox-kernel-helper (8.0.8) bookworm; urgency=medium
 
   * grub-install: provide --removable to grub-install to ensure a boot entry
