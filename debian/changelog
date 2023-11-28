@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.1.0) bookworm; urgency=medium
+
+  * re-add the simplefb module to initramfs again
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 28 Nov 2023 13:55:18 +0100
+
 proxmox-kernel-helper (8.0.9) bookworm; urgency=medium
 
   * add dedicated removable installation
