@@ -1,3 +1,4 @@
+debian/proxmox-simplefb /usr/share/initramfs-tools/modules.d
 etc/grub.d/000_proxmox_boot_header
 etc/initramfs/post-update.d/proxmox-boot-sync
 etc/kernel/postinst.d/*
