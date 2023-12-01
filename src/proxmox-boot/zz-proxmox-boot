@@ -231,16 +231,17 @@ check_grub_efi_package() {
 		return
 	fi
 
-	if [ ! -d /sys/firmware/efi ]; then
+	# It is not necessary
+	# if [ ! -d /sys/firmware/efi ]; then
+	# 	return
+	# fi
+
+	if [ -f /usr/share/doc/grub-efi-arm64/changelog.Debian.gz ]; then
 		return
 	fi
 
-	if [ -f /usr/share/doc/grub-efi-amd64/changelog.Debian.gz ]; then
-		return
-	fi
-
-	warn "System booted in EFI-mode but 'grub-efi-amd64' meta-package not installed!"
-	warn "Install 'grub-efi-amd64' to get updates."
+	warn "System booted in EFI-mode but 'grub-efi-arm64' meta-package not installed!"
+	warn "Install 'grub-efi-arm64' to get updates."
 }
 
 set -- $DEB_MAINT_PARAMS
