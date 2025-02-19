@@ -7,7 +7,33 @@ set -e
 # /usr/lib/kernel/install.d/90-loaderentry.install, see also
 # https://kernel-team.pages.debian.net/kernel-handbook/ch-update-hooks.html
 
-
+ARCH=$(arch)
+case "$ARCH" in
+	'x86_64')
+		grubfile="grubx64.efi"
+		target="x86_64-efi"
+		pkg="grub-efi-amd64"
+	;;
+	'aarch64')
+		grubfile="grubaa64.efi"
+		target="arm64-efi"
+		pkg="grub-efi-arm64"
+	;;
+	'loongarch64')
+		grubfile="grubloongarch64.efi"
+		target="loongarch64-efi"
+		pkg="grub-efi-loongarch64"
+	;;
+	'riscv64')
+		grubfile="grubriscv64.efi"
+		target="riscv64-efi"
+		pkg="grub-efi-riscv64"
+	;;
+	*)
+	echo "Unsupported architecture: $1"
+	exit 1
+	;;
+esac
 
 # - cleanup - gently delete all kernels not in kernel-keep-list
 
@@ -78,7 +104,7 @@ update_esp_func() {
 	mount "${path}" "${mountpoint}" || \
 		{ warn "mount of ${path} failed - skipping"; return; }
 
-	if [ -e "${mountpoint}/EFI/proxmox/grubx64.efi" ]; then
+	if [ -e "${mountpoint}/EFI/proxmox/${grubfile}" ]; then
 		grub=1
 	fi
 	if [ -d /sys/firmware/efi ] && [ "$grub" != 1 ]; then
@@ -235,12 +261,12 @@ check_grub_efi_package() {
 		return
 	fi
 
-	if [ -f /usr/share/doc/grub-efi-amd64/changelog.Debian.gz ]; then
+	if [ -f /usr/share/doc/${pkg}/changelog.Debian.gz ]; then
 		return
 	fi
 
-	warn "System booted in EFI-mode but 'grub-efi-amd64' meta-package not installed!"
-	warn "Install 'grub-efi-amd64' to get updates."
+	warn "System booted in EFI-mode but ${pkg} meta-package not installed!"
+	warn "Install ${pkg} to get updates."
 }
 
 set -- $DEB_MAINT_PARAMS

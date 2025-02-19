@@ -160,18 +160,18 @@ init_bootloader() {
 
 	if [ -d /sys/firmware/efi ]; then
 		if [ -n "$mode" ] && [ "$mode" = "grub" ]; then
-			echo "Installing grub x86_64 target.."
+			echo "Installing grub "${ARCH}" target.."
 			grub-install.real \
 				--boot-directory "${esp_mp}" \
-				--target x86_64-efi \
+				--target "${target}" \
 				--no-floppy \
 				--efi-directory "${esp_mp}" \
 				--bootloader-id 'proxmox' \
 				"/dev/$PKNAME"
-			echo "Installing grub x86_64 target (removable).."
+			echo "Installing grub "${ARCH}" target (removable).."
 			grub-install.real \
 				--boot-directory "${esp_mp}" \
-				--target x86_64-efi \
+				--target "${target}" \
 				--no-floppy \
 				--efi-directory "${esp_mp}" \
 				--removable \
@@ -194,6 +194,10 @@ init_bootloader() {
 			mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
 		fi
 	else
+		if [ "$ARCH" != "X86_64" ];then
+			warn "E: only x86_64 is supported for legacy boot."
+			exit 1
+		fi
 		echo "Installing grub i386-pc target.."
 		grub-install.real \
 			--boot-directory "$esp_mp" \
@@ -347,6 +351,35 @@ list_kernels() {
 	fi
 }
 
+kexec_kernel(){
+ver="$1"
+
+        if [ -z "$ver" ]; then
+                warn "E: <kernel-version> is mandatory"
+                warn ""
+                exit 1
+        fi
+
+        if [ -f "/boot/vmlinuz-$ver" ] && [ -f "/boot/initrd.img-$ver" ]; then
+                read -p "press y/Y to continue" confirm
+		if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ];
+		then
+			echo $ARCH
+			if [ "$ARCH" = "x86_64" ];then
+				/sbin/kexec -l /boot/vmlinuz-$ver --initrd=/boot/initrd.img-$ver --reuse-cmdline
+				systemctl kexec
+			else
+				/sbin/kexec /boot/vmlinuz-$ver --initrd=/boot/initrd.img-$ver --reuse-cmdline
+			fi
+		else
+			exit 0
+		fi
+        else
+                echo "Kernel '$ver' not found in  kernel list."
+        fi
+
+}
+
 usage() {
 	subcmd="$1"
 	if [ -z "$subcmd" ]; then
@@ -373,6 +406,7 @@ usage() {
 		warn "  $0 kernel pin <kernel-version> [--next-boot]"
 		warn "  $0 kernel unpin [--next-boot]"
 		warn "  $0 kernel list"
+		warn "  $0 kernel kexec"
 	fi
 	if [ -z "$subcmd" ] || [ "$subcmd" = "status" ]; then
 		warn "  $0 status [--quiet]"
@@ -422,6 +456,10 @@ help() {
 	echo "USAGE: $0 kernel list"
 	echo ""
 	echo "    list kernel versions currently selected for inclusion on ESPs."
+	echo ""
+	echo "USAGE: $0 kernel kexec"
+	echo ""
+	echo "    Directly loads the new kernel into main memory and starts executing it immediately.."
 	echo ""
 	echo "USAGE: $0 status [--quiet]"
 	echo ""
@@ -578,6 +616,27 @@ if [ -z "$1" ]; then
     exit 0
 fi
 
+ARCH=$(arch)
+case "$ARCH" in
+	'x86_64')
+		grubfile="grubx64.efi"
+		target="x86_64-efi"
+	;;
+	'aarch64')
+		grubfile="grubaa64.efi"
+		target="arm64-efi"
+	;;
+	'loongarch64')
+		grubfile="grubloongarch64.efi"
+		target="loongarch64-efi"
+	;;
+	'riscv64')
+		grubfile="grubriscv64.efi"
+		target="riscv64-efi"
+	;;
+esac
+
+
 case "$1" in
 	'format')
 		shift
@@ -655,6 +714,11 @@ case "$1" in
 				list_kernels
 				exit 0
 			;;
+			'kexec')
+				kexec_kernel "$2"
+				exit 0
+			;;
+
 			'pin')
 				if [ "$#" -eq 3 ] && [ "$3" = '--next-boot' ]; then
 					pin_kernel "$2" "${NEXT_BOOT_PIN}"
