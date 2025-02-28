@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.1.0-1) bookworm; urgency=medium
+
+  * add kexec support
+
+ -- Lierfang Support Team <itsupport@lierfang.com>  Fri, 28 Feb 2025 15:10:06 +0800
+
 proxmox-kernel-helper (8.1.0) bookworm; urgency=medium
 
   * re-add the simplefb module to initramfs again
