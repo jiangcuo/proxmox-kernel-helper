@@ -194,7 +194,7 @@ init_bootloader() {
 			mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
 		fi
 	else
-		if [ "$ARCH" == "X86_64" ];then
+		if [ "$ARCH" = "x86_64" ];then
 		echo "Installing grub i386-pc target.."
 		grub-install.real \
 			--boot-directory "$esp_mp" \
