@@ -152,7 +152,7 @@ init_bootloader() {
 	mount -t vfat "$part" "$esp_mp"
 
 	if [ -z "$mode" ]; then
-		if [ -e "$esp_mp/EFI/proxmox/grubx64.efi" ]; then
+		if [ -e "$esp_mp/EFI/proxmox/grub${ARCH}.efi" ]; then
 			# for reinit support
 			mode=grub
 		fi
@@ -194,10 +194,7 @@ init_bootloader() {
 			mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
 		fi
 	else
-		if [ "$ARCH" != "X86_64" ];then
-			warn "E: only x86_64 is supported for legacy boot."
-			exit 1
-		fi
+		if [ "$ARCH" == "X86_64" ];then
 		echo "Installing grub i386-pc target.."
 		grub-install.real \
 			--boot-directory "$esp_mp" \
@@ -205,6 +202,7 @@ init_bootloader() {
 			--no-floppy \
 			--bootloader-id='proxmox' \
 			"/dev/$PKNAME"
+		fi
 	fi
 	echo "Unmounting '$part'."
 	umount "$part"
