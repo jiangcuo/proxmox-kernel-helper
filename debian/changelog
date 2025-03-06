@@ -1,3 +1,9 @@
+proxmox-kernel-helper (8.1.0-3) bookworm; urgency=medium
+
+  * fix Syntax error
+
+ -- Lierfang Support Team <itsupport@lierfang.com>  Thu, 06 Mar 2025 15:31:55 +0800
+
 proxmox-kernel-helper (8.1.0-2) bookworm; urgency=medium
 
   * fix esp init on x86_64
