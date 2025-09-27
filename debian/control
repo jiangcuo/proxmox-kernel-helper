@@ -10,7 +10,7 @@ Architecture: all
 Section: admin
 Priority: optional
 Depends: dosfstools, kexec-tools, gdisk, systemd, udev, ${misc:Depends},
-Suggests: systemd-boot,
+Suggests: systemd-boot-tools, systemd-boot-efi
 Breaks: proxmox-ve (<< 6.0-2~), pve-kernel-helper,
 Replaces: proxmox-ve (<< 6.0-2~), pve-kernel-helper,
 Provides: pve-kernel-helper,

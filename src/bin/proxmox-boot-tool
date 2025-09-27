@@ -149,7 +149,7 @@ init_bootloader() {
 
 	mkdir -p "$esp_mp"
 	echo "Mounting '$part' on '$esp_mp'."
-	mount -t vfat "$part" "$esp_mp"
+	mount -t vfat -o umask=0077 "$part" "$esp_mp"
 
 	if [ -z "$mode" ]; then
 		if [ -e "$esp_mp/EFI/proxmox/grub${ARCH}.efi" ]; then
@@ -182,7 +182,11 @@ init_bootloader() {
 			mkdir -p "$esp_mp/$PMX_ESP_DIR"
 			if ! command -V bootctl >/dev/null 2>&1 ;
 			then
-				warn "E: bootctl is not available - make sure systemd-boot is installed"
+				warn "E: bootctl is not available - make sure systemd-boot-tools is installed"
+				exit 1
+			fi
+			if [ ! -d /usr/lib/systemd/boot/efi ]; then
+				warn "E: systemd-boot EFI files not available - make sure systemd-boot-efi is installed"
 				exit 1
 			fi
 
@@ -362,7 +366,6 @@ ver="$1"
                 read -p "press y/Y to continue" confirm
 		if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ];
 		then
-			echo $ARCH
 			if [ "$ARCH" = "x86_64" ];then
 				/sbin/kexec -l /boot/vmlinuz-$ver --initrd=/boot/initrd.img-$ver --reuse-cmdline
 				systemctl kexec

@@ -1,3 +1,50 @@
+proxmox-kernel-helper (9.0.4) trixie; urgency=medium
+
+  * proxmox-boot: unconditionally mask systemd-gpt-auto-generator to avoid
+    conflicts with systemd-boot.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 14 Aug 2025 17:16:58 +0200
+
+proxmox-kernel-helper (9.0.3) trixie; urgency=medium
+
+  * systemd-boot: switch to suggesting new packages to avoid fallout
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 31 Jul 2025 14:03:56 +0200
+
+proxmox-kernel-helper (9.0.2) trixie; urgency=medium
+
+  * d/postinst: run reinit unconditionally upon configure as dpkg can merge
+    triggers with configures if both, the triggering package and the triggered
+    package are in the same set of an upgrade.
+
+  * proxmox-boot-tool: mount ESPs with umask=0077 to make bootctl happy, as
+    it cannot know that we're in a dedicated mount namespace already anyway.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 23 Jul 2025 22:36:09 +0200
+
+proxmox-kernel-helper (9.0.1) trixie; urgency=medium
+
+  * d/triggers: add interest on boot-loader updates and reinit the proxmox
+    boot tool on such updates.
+
+  * d/postinst: run proxmox-boot-tool reinit once upon upgrade before
+    triggers can become effective.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 22 Jul 2025 13:39:47 +0200
+
+proxmox-kernel-helper (9.0.0) trixie; urgency=medium
+
+  * re-build for Debian 13 Trixie based Proxmox projects.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 17 Jun 2025 17:05:53 +0200
+
+proxmox-kernel-helper (8.1.1) bookworm; urgency=medium
+
+  * check removable status of EFI fallback bootloader to ensure that this
+    second copy of the bootloader also gets updated.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 04 Mar 2025 16:05:34 +0100
+
 proxmox-kernel-helper (8.1.0-3) bookworm; urgency=medium
 
   * fix Syntax error

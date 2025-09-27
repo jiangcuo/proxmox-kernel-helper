@@ -101,7 +101,7 @@ update_esp_func() {
 	mountpoint="${MOUNTROOT}/${curr_uuid}"
 	mkdir -p "${mountpoint}" || \
 		{ warn "creation of mountpoint ${mountpoint} failed - skipping"; return; }
-	mount "${path}" "${mountpoint}" || \
+	mount -t vfat -o umask=0077 "${path}" "${mountpoint}" || \
 		{ warn "mount of ${path} failed - skipping"; return; }
 
 	if [ -e "${mountpoint}/EFI/proxmox/${grubfile}" ]; then
@@ -269,6 +269,46 @@ check_grub_efi_package() {
 	warn "Install ${pkg} to get updates."
 }
 
+check_grub_efi_removable_status() {
+	# not booted in EFI, no need to care about removable bootloader
+	if [ ! -d /sys/firmware/efi ]; then
+		return
+	fi
+
+	# no removable bootloader
+	if [ ! -f "/boot/efi/EFI/BOOT/BOOTX64.efi" ]; then
+		return
+	fi
+
+	debconf_value="$(debconf-show --db configdb grub-efi-amd64 grub-pc | grep 'force_efi_extra_removable')"
+
+	# packages already set up to install a removable copy, let's trust that it works
+	if echo "${debconf_value}" | grep -qE ': true$'; then
+		return
+	fi
+
+	echo ""
+	echo "Removable bootloader found at '/boot/efi/EFI/BOOT/BOOTX64.efi', but GRUB packages not set up to update it!"
+	echo "Run the following command:"
+	echo ""
+	echo "echo 'grub-efi-amd64 grub2/force_efi_extra_removable boolean true' | debconf-set-selections -v -u"
+	echo ""
+	echo "Then reinstall GRUB with 'apt install --reinstall grub-efi-amd64'"
+	echo ""
+}
+
+mask_sd_gpt_generator() {
+	generator="systemd-gpt-auto-generator"
+	mask_dir="/etc/systemd/system-generators"
+	# already masked (or re-enabled manually) - nothing to do:
+	if [ -e "$mask_dir/$generator" ]; then
+		return
+	fi
+	warn "masking the $generator systemd generator unit to avoid problems with the ESP and updates in certain setups."
+	mkdir -p "$mask_dir"
+	ln -s /dev/null "$mask_dir/$generator"
+}
+
 set -- $DEB_MAINT_PARAMS
 mode="${1#\'}"
 mode="${mode%\'}"
@@ -283,6 +323,8 @@ case $0:$mode in
 		update_esps
 		disable_systemd_boot_hook
 		check_grub_efi_package
+		check_grub_efi_removable_status
+		mask_sd_gpt_generator
 	;;
 	 */postrm.d/*:|*/postrm.d/*:remove)
 		reexec_in_mountns "$@"
@@ -291,6 +333,8 @@ case $0:$mode in
 		update_esps
 		disable_systemd_boot_hook
 		check_grub_efi_package
+		check_grub_efi_removable_status
+		mask_sd_gpt_generator
 	;;
 esac
 

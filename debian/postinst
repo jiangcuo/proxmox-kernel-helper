@@ -12,7 +12,21 @@ case "$1" in
             echo "$0: legacy manual kernel list /etc/kernel/pve-efiboot-manual-kernels found moving to /etc/kernel/proxmox-boot-manual-kernels" 1>&2
             mv /etc/kernel/pve-efiboot-manual-kernels /etc/kernel/proxmox-boot-manual-kernels
         fi
-        ;;
+
+        proxmox-boot-tool reinit || true
+    ;;
+
+    triggered)
+        proxmox-boot-tool reinit || true
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
 esac
 
 #DEBHELPER#
