@@ -1,3 +1,9 @@
+proxmox-kernel-helper (9.0.4+pxvirt1) trixie; urgency=medium
+
+  * Add pxvirt kernel
+
+ -- Lierfang Support Team <itsupport@lierfang.com>  Tue, 19 May 2026 04:09:34 +0000
+
 proxmox-kernel-helper (9.0.4) trixie; urgency=medium
 
   * proxmox-boot: unconditionally mask systemd-gpt-auto-generator to avoid
