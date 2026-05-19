@@ -49,12 +49,12 @@ kernel_keep_versions() {
 		running_version=""
 	fi
 
-	latest_2_versions="$(echo "$sorted_list" | grep -E '^[^ ]+-pve' | head -n2 )"
+	latest_2_versions="$(echo "$sorted_list" | grep -E '^[^ ]+-(pve|openeuler|generic|phytium|rockchip)' | head -n2 )"
 
 	series_metapackages="$(echo "$sorted_list" | grep -Ev '^[^ ]+-pve' | head -n2)"
 
 	oldseries="$(echo "$series_metapackages" | tail -n1)"
-	oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-pve" | head -n1 )"
+	oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-(pve|openeuler|generic|phytium|rockchip)" | head -n1 )"
 
 	if [ -e "$MANUAL_KERNEL_LIST" ]; then
 		manual_kernels="$(cat "$MANUAL_KERNEL_LIST")"

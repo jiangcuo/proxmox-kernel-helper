@@ -364,19 +364,14 @@ ver="$1"
 
         if [ -f "/boot/vmlinuz-$ver" ] && [ -f "/boot/initrd.img-$ver" ]; then
                 read -p "press y/Y to continue" confirm
-		if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ];
-		then
-			if [ "$ARCH" = "x86_64" ];then
+			if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ];then
 				/sbin/kexec -l /boot/vmlinuz-$ver --initrd=/boot/initrd.img-$ver --reuse-cmdline
 				systemctl kexec
 			else
-				/sbin/kexec /boot/vmlinuz-$ver --initrd=/boot/initrd.img-$ver --reuse-cmdline
+				exit 0
 			fi
-		else
-			exit 0
-		fi
         else
-                echo "Kernel '$ver' not found in  kernel list."
+                echo "Kernel /boot/vmlinuz-$ver not found."
         fi
 
 }
