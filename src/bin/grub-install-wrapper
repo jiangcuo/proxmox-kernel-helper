@@ -4,13 +4,119 @@ set -e
 
 . /usr/share/proxmox-kernel-helper/scripts/functions
 
+if [ ! -f /usr/bin/apt ]; then
+    # RPM-based system
+    #
+    # Install grub EFI to ESP with layout:
+    #   EFI/BOOT/<grubfile>       (fallback boot entry)
+    #   EFI/pxvirt/<grubfile>     (primary boot entry)
+    #   EFI/pxvirt/grub.cfg       (stub → configfile /boot/grub2/grub.cfg)
+    #
+    # If the caller explicitly asks for a BIOS target, pass through directly.
+
+    for arg in "$@"; do
+        case "$arg" in
+            --target=i386-pc|--target=*-pc|--target=i386-coreboot|--target=i386-multiboot)
+                exec grub2-install "$@"
+                ;;
+        esac
+    done
+
+    # Determine architecture-specific parameters
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        x86_64)
+            grub_target="x86_64-efi"
+            grubfile="grubx64.efi"
+            bootfile="bootx64.efi"
+            ;;
+        aarch64)
+            grub_target="arm64-efi"
+            grubfile="grubaa64.efi"
+            bootfile="bootaa64.efi"
+            ;;
+        loongarch64)
+            grub_target="loongarch64-efi"
+            grubfile="grubloongarch64.efi"
+            bootfile="bootloongarch64.efi"
+            ;;
+        riscv64)
+            grub_target="riscv64-efi"
+            grubfile="grubriscv64.efi"
+            bootfile="bootriscv64.efi"
+            ;;
+        *)
+            warn "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+    esac
+
+    EFI_DIR="/boot/efi"
+    BOOTLOADER_ID="pxvirt"
+    MOUNTED_ESP=""
+
+    cleanup_esp() {
+        if [ -n "$MOUNTED_ESP" ]; then
+            umount "$EFI_DIR" || warn "WARN: umount of ${EFI_DIR} failed"
+            MOUNTED_ESP=""
+        fi
+    }
+    trap cleanup_esp EXIT INT TERM QUIT
+
+    # Mount ESP if not already mounted
+    if ! mountpoint -q "$EFI_DIR"; then
+        esp_dev=""
+        for dev in $(lsblk -rno NAME,PARTTYPE | awk \
+            'tolower($2)=="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"{print "/dev/"$1}'); do
+            esp_dev="$dev"
+            break
+        done
+        if [ -z "$esp_dev" ]; then
+            esp_dev="$(blkid -t TYPE=vfat -o device | head -n1 || true)"
+        fi
+        if [ -z "$esp_dev" ]; then
+            warn "Could not find an EFI System Partition to mount on ${EFI_DIR}"
+            exit 1
+        fi
+        mkdir -p "$EFI_DIR"
+        mount "$esp_dev" "$EFI_DIR" || { warn "mount of ${esp_dev} on ${EFI_DIR} failed"; exit 1; }
+        MOUNTED_ESP=1
+    fi
+
+    # Install grub to EFI/pxvirt/
+    grub2-install --target="$grub_target" --efi-directory="$EFI_DIR" \
+        --bootloader-id="$BOOTLOADER_ID" --no-nvram 2>/dev/null || \
+    grub2-install --target="$grub_target" --efi-directory="$EFI_DIR" \
+        --bootloader-id="$BOOTLOADER_ID"
+
+    # Copy to EFI/BOOT/ as fallback (UEFI spec default boot path)
+    mkdir -p "${EFI_DIR}/EFI/boot"
+    cp "${EFI_DIR}/EFI/${BOOTLOADER_ID}/${grubfile}" \
+       "${EFI_DIR}/EFI/BOOT/${bootfile}"
+
+    # Write stub grub.cfg that chains into rootfs /boot/grub2/grub.cfg
+    boot_uuid="$(grub2-probe --target=fs_uuid /boot/grub2)"
+    mkdir -p "${EFI_DIR}/EFI/${BOOTLOADER_ID}"
+    cat > "${EFI_DIR}/EFI/${BOOTLOADER_ID}/grub.cfg" <<EOF
+search.fs_uuid ${boot_uuid} root
+set prefix=(\$root)'/boot/grub2'
+configfile \$prefix/grub.cfg
+EOF
+
+    # Also write to EFI/BOOT/grub.cfg for fallback path
+    cp "${EFI_DIR}/EFI/${BOOTLOADER_ID}/grub.cfg" \
+       "${EFI_DIR}/EFI/BOOT/grub.cfg"
+
+    exit 0
+fi
+
+# Debian-based system
 if proxmox-boot-tool status --quiet; then
     # detect when being called by dpkg (e.g. grub-pc.postinst
     if [ -n "$DPKG_RUNNING_VERSION" ] && echo "$DPKG_MAINTSCRIPT_PACKAGE" | grep -sq -e "^grub-" -e "^shim-"; then
             MARKER_FILE="/tmp/proxmox-boot-tool.dpkg.marker"
             if [ ! -e "$MARKER_FILE" ]; then
                 warn "This system is booted via proxmox-boot-tool, running proxmox-boot-tool init for all configured bootdisks"
-                # can fail for various reasons, but we don't want to fail the upgrade..
                 proxmox-boot-tool reinit || true
                 proxmox-boot-tool refresh || true
                 touch "$MARKER_FILE"

@@ -41,6 +41,16 @@ elif [ -d /usr/share/doc/proxmox-backup/ ]; then
 	LOADER_TITLE="Proxmox Backup Server"
 fi
 
+# Determine arch-specific grub EFI binary name
+ARCH=$(uname -m)
+case "$ARCH" in
+	x86_64)    grubfile="grubx64.efi" ;;
+	aarch64)   grubfile="grubaa64.efi" ;;
+	loongarch64) grubfile="grubloongarch64.efi" ;;
+	riscv64)   grubfile="grubriscv64.efi" ;;
+	*)         grubfile="grub.efi" ;;
+esac
+
 update_esps() {
 	if [ ! -f "${ESP_LIST}" ]; then
 	    warn "No ${ESP_LIST} found, skipping ESP sync."
@@ -78,7 +88,7 @@ update_esp_func() {
 	mount "${path}" "${mountpoint}" || \
 		{ warn "mount of ${path} failed - skipping"; return; }
 
-	if [ -e "${mountpoint}/EFI/proxmox/grubx64.efi" ]; then
+	if [ -e "${mountpoint}/EFI/proxmox/${grubfile}" ]; then
 		grub=1
 	fi
 	if [ -d /sys/firmware/efi ] && [ "$grub" != 1 ]; then
@@ -90,7 +100,7 @@ update_esp_func() {
 			warn "${path}/$PMX_ESP_DIR does not exist- skipping"
 			return
 		fi
-	elif [ ! -d "${mountpoint}/grub" ]; then
+	elif [ ! -d "${mountpoint}/grub" ] && [ ! -d "${mountpoint}/grub2" ]; then
 		warn "${path} contains no grub directory - skipping"
 		return
 	fi
@@ -235,12 +245,28 @@ check_grub_efi_package() {
 		return
 	fi
 
-	if [ -f /usr/share/doc/grub-efi-amd64/changelog.Debian.gz ]; then
-		return
+	if [ -f /usr/bin/apt ]; then
+		# Debian: check for grub-efi package via changelog
+		case "$ARCH" in
+			x86_64)    pkg="grub-efi-amd64" ;;
+			aarch64)   pkg="grub-efi-arm64" ;;
+			loongarch64) pkg="grub-efi-loongarch64" ;;
+			riscv64)   pkg="grub-efi-riscv64" ;;
+			*)         pkg="grub-efi" ;;
+		esac
+		if [ -f "/usr/share/doc/${pkg}/changelog.Debian.gz" ]; then
+			return
+		fi
+		warn "System booted in EFI-mode but '${pkg}' meta-package not installed!"
+		warn "Install '${pkg}' to get updates."
+	else
+		# RPM: check for grub2-efi package
+		if rpm -q grub2-efi >/dev/null 2>&1 || rpm -q grub2-efi-x64 >/dev/null 2>&1; then
+			return
+		fi
+		warn "System booted in EFI-mode but grub2-efi package not installed!"
+		warn "Install grub2-efi to get updates."
 	fi
-
-	warn "System booted in EFI-mode but 'grub-efi-amd64' meta-package not installed!"
-	warn "Install 'grub-efi-amd64' to get updates."
 }
 
 set -- $DEB_MAINT_PARAMS

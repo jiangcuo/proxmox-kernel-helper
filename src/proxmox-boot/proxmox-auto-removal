@@ -3,6 +3,11 @@ set -e
 
 . /usr/share/proxmox-kernel-helper/scripts/functions
 
+if [ ! -f "/usr/bin/apt" ]; then
+	exit 0
+fi
+
+
 eval "$(apt-config shell APT_CONF_D Dir::Etc::parts/d)"
 test -n "${APT_CONF_D}" || APT_CONF_D="/etc/apt/apt.conf.d"
 

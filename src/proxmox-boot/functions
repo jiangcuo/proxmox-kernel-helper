@@ -27,11 +27,19 @@ GRUB_PIN_SNIPPET="/etc/default/grub.d/proxmox-kernel-pin.cfg"
 #  - the currently pinned kernel if any
 
 kernel_keep_versions() {
-	eval "$(apt-config shell DPKG Dir::bin::dpkg/f)"
-	test -n "$DPKG" || DPKG="/usr/bin/dpkg"
+	if [ -f /usr/bin/apt ]; then
+		# Debian/Ubuntu: use dpkg
+		eval "$(apt-config shell DPKG Dir::bin::dpkg/f)"
+		test -n "$DPKG" || DPKG="/usr/bin/dpkg"
 
-	list="$("${DPKG}" -l | awk '/^[ih][^nc][ ]+(proxmox|pve)-kernel-[0-9]+\./ && $2 !~ /-dbg(:.*)?$/ && $2 !~ /-dbgsym(:.*)?$/ { print $2; }' \
-	   | sed -e 's#^pve-kernel-##' -e 's#^proxmox-kernel-##' -e 's#-signed$##' -e 's#:[^:]\+ # #')"
+		list="$("${DPKG}" -l | awk '/^[ih][^nc][ ]+(proxmox|pve)-kernel-[0-9]+\./ && $2 !~ /-dbg(:.*)?$/ && $2 !~ /-dbgsym(:.*)?$/ { print $2; }' \
+		   | sed -e 's#^pve-kernel-##' -e 's#^proxmox-kernel-##' -e 's#-signed$##' -e 's#:[^:]\+ # #')"
+	else
+		# RPM-based: use rpm
+		list="$(rpm -qa --queryformat '%{NAME}\n' 2>/dev/null \
+		   | awk '/^(proxmox|pve)-kernel-[0-9]+\./' \
+		   | sed -e 's#^pve-kernel-##' -e 's#^proxmox-kernel-##')"
+	fi
 
 	sorted_list="$(echo "$list" | sort --unique --reverse --version-sort)"
 
@@ -49,12 +57,19 @@ kernel_keep_versions() {
 		running_version=""
 	fi
 
-	latest_2_versions="$(echo "$sorted_list" | grep -E '^[^ ]+-pve' | head -n2 )"
-
-	series_metapackages="$(echo "$sorted_list" | grep -Ev '^[^ ]+-pve' | head -n2)"
-
-	oldseries="$(echo "$series_metapackages" | tail -n1)"
-	oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-pve" | head -n1 )"
+	if [ -f /usr/bin/apt ]; then
+		# Debian: keep latest 2 versioned kernels + series metapackages
+		latest_2_versions="$(echo "$sorted_list" | grep -E '^[^ ]+-pve' | head -n2 )"
+		series_metapackages="$(echo "$sorted_list" | grep -Ev '^[^ ]+-pve' | head -n2)"
+		oldseries="$(echo "$series_metapackages" | tail -n1)"
+		oldseries_latest_kernel="$(echo "$sorted_list" | grep -E "^${oldseries}\.[^ ]+-pve" | head -n1 )"
+	else
+		# RPM: keep latest 2 versioned kernels (no -pve suffix, match distro suffix)
+		latest_2_versions="$(echo "$sorted_list" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-' | head -n2 )"
+		series_metapackages=""
+		oldseries=""
+		oldseries_latest_kernel=""
+	fi
 
 	if [ -e "$MANUAL_KERNEL_LIST" ]; then
 		manual_kernels="$(cat "$MANUAL_KERNEL_LIST")"
@@ -130,11 +145,18 @@ set_grub_default() {
 	if [ -z "${kver}" ]; then
 		rm -f "${GRUB_PIN_SNIPPET}"
 	else
+		# Determine grub.cfg location
+		if [ -f /usr/bin/apt ]; then
+			grub_cfg="/boot/grub/grub.cfg"
+		else
+			grub_cfg="/boot/grub2/grub.cfg"
+		fi
+
 		# grub menu entry ids contain the internal root-device id (e.g. for zfs the GUID of
 		# the pool printed in hex) as this is independent of the ESP (or grub location)
-		# take it from /boot/grub/grub.cfg
+		# take it from grub.cfg
 		root_devid=$(sed -rn "s/.*gnulinux-advanced-(.+)['] \{$/\1/p" \
-			/boot/grub/grub.cfg)
+			"$grub_cfg")
 		entry="gnulinux-advanced-${root_devid}>gnulinux-${kver}-advanced-${root_devid}"
 		echo "GRUB_DEFAULT=\"${entry}\"" > "${GRUB_PIN_SNIPPET}"
 	fi
