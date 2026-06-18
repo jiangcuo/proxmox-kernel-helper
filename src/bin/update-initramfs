@@ -1,0 +1,58 @@
+#! /bin/sh
+
+# update-initramfs compatibility shim.
+#
+# On Debian-based systems this command exists natively (initramfs-tools), so we
+# pass through to it. On RPM-based systems (no /usr/bin/apt) the equivalent is
+# dracut; we translate the common update-initramfs invocations used by the
+# proxmox-kernel-helper hooks into dracut calls.
+#
+# Supported translations (RPM):
+#   -u            -> dracut --force                (regenerate current kernel)
+#   -u -k <ver>   -> dracut --force --kver <ver>
+#   -u -k all     -> dracut --force --regenerate-all
+#   -c -k <ver>   -> dracut --force --kver <ver>   (create)
+#   -d -k <ver>   -> rm -f /boot/initramfs-<ver>.img  (delete, best effort)
+#   -v            -> dracut -v
+# Unknown options are ignored; with no recognizable mode we regenerate all.
+
+set -e
+
+if [ -f /usr/bin/apt ]; then
+    # Debian system - behave like the stock update-initramfs
+    exec update-initramfs.real "$@" 2>/dev/null || exec /usr/sbin/update-initramfs "$@"
+fi
+
+# RPM system
+. /usr/share/proxmox-kernel-helper/scripts/functions
+
+mode=""
+kver=""
+verbose=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -u) mode="update" ;;
+        -c) mode="create" ;;
+        -d) mode="delete" ;;
+        -k) shift; kver="$1" ;;
+        -v) verbose="-v" ;;
+        # silently ignore options that have no dracut equivalent
+        -t|-b|-y*|-o) ;;
+        *) ;;
+    esac
+    shift
+done
+
+if [ "$mode" = "delete" ]; then
+    if [ -n "$kver" ] && [ "$kver" != "all" ]; then
+        rm -f "/boot/initramfs-${kver}.img"
+    fi
+    exit 0
+fi
+
+if [ -z "$kver" ] || [ "$kver" = "all" ]; then
+    exec dracut $verbose --force --regenerate-all
+fi
+
+exec dracut $verbose --force --kver "$kver"

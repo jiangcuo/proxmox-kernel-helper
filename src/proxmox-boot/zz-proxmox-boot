@@ -116,7 +116,7 @@ update_esp_func() {
 			warn "${path}/$PMX_ESP_DIR does not exist- skipping"
 			return
 		fi
-	elif [ ! -d "${mountpoint}/grub" ]; then
+	elif [ ! -d "${mountpoint}/grub" ] && [ ! -d "${mountpoint}/grub2" ]; then
 		warn "${path} contains no grub directory - skipping"
 		return
 	fi
@@ -261,12 +261,21 @@ check_grub_efi_package() {
 		return
 	fi
 
-	if [ -f /usr/share/doc/${pkg}/changelog.Debian.gz ]; then
-		return
+	if [ -f /usr/bin/apt ]; then
+		# Debian: check for grub-efi package via changelog
+		if [ -f "/usr/share/doc/${pkg}/changelog.Debian.gz" ]; then
+			return
+		fi
+		warn "System booted in EFI-mode but '${pkg}' meta-package not installed!"
+		warn "Install '${pkg}' to get updates."
+	else
+		# RPM: check for grub2-efi package
+		if rpm -q grub2-efi >/dev/null 2>&1 || rpm -q grub2-efi-x64 >/dev/null 2>&1; then
+			return
+		fi
+		warn "System booted in EFI-mode but grub2-efi package not installed!"
+		warn "Install grub2-efi to get updates."
 	fi
-
-	warn "System booted in EFI-mode but ${pkg} meta-package not installed!"
-	warn "Install ${pkg} to get updates."
 }
 
 check_grub_efi_removable_status() {

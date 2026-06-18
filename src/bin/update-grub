@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# update-grub compatibility shim.
+#
+# On Debian-based systems this command exists natively, so we just pass through
+# to it. On RPM-based systems (no /usr/bin/apt) it does not exist; there the
+# equivalent is grub2-mkconfig. We always (re)generate /boot/grub2/grub.cfg,
+# which serves both BIOS and UEFI boots: on UEFI the ESP only holds a small
+# forwarding stub (written once by grub-install) that does a 'configfile' into
+# /boot/grub2/grub.cfg, so a single regeneration covers both.
+
+set -e
+
+if [ -f /usr/bin/apt ]; then
+    # Debian system - behave like the stock update-grub
+    exec grub-mkconfig -o /boot/grub/grub.cfg
+fi
+
+# RPM system
+. /usr/share/proxmox-kernel-helper/scripts/functions
+
+exec grub2-mkconfig -o /boot/grub2/grub.cfg
