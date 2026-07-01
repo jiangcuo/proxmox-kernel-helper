@@ -18,6 +18,8 @@
 
 set -e
 
+force_add_modules='lvm dm btrfs'
+
 if [ -f /usr/bin/apt ]; then
     # Debian system - behave like the stock update-initramfs
     exec update-initramfs.real "$@" 2>/dev/null || exec /usr/sbin/update-initramfs "$@"
@@ -52,7 +54,7 @@ if [ "$mode" = "delete" ]; then
 fi
 
 if [ -z "$kver" ] || [ "$kver" = "all" ]; then
-    exec dracut $verbose --force --regenerate-all
+    exec dracut ${verbose:+-v} --force --regenerate-all --force-add "$force_add_modules"
 fi
 
-exec dracut $verbose --force --kver "$kver"
+exec dracut ${verbose:+-v} --force --kver "$kver" --force-add "$force_add_modules"

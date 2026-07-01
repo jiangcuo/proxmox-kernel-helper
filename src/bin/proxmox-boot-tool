@@ -83,6 +83,17 @@ _get_partition_info() {
 	fi
 }
 
+_set_grub_install_bin() {
+	if command -v grub-install.real >/dev/null 2>&1; then
+		GRUB_BIN="grub-install.real"
+	elif command -v grub2-install >/dev/null 2>&1; then
+		GRUB_BIN="grub2-install"
+	else
+		warn "E: neither grub-install.real nor grub2-install found"
+		exit 1
+	fi
+}
+
 format() {
 	part="$1"
 	force="$2"
@@ -160,16 +171,17 @@ init_bootloader() {
 
 	if [ -d /sys/firmware/efi ]; then
 		if [ -n "$mode" ] && [ "$mode" = "grub" ]; then
-			echo "Installing grub "${ARCH}" target.."
-			grub-install.real \
+			_set_grub_install_bin
+			echo "Installing grub ${ARCH} target.."
+			"${GRUB_BIN}" \
 				--boot-directory "${esp_mp}" \
 				--target "${target}" \
 				--no-floppy \
 				--efi-directory "${esp_mp}" \
 				--bootloader-id 'proxmox' \
 				"/dev/$PKNAME"
-			echo "Installing grub "${ARCH}" target (removable).."
-			grub-install.real \
+			echo "Installing grub ${ARCH} target (removable).."
+			"${GRUB_BIN}" \
 				--boot-directory "${esp_mp}" \
 				--target "${target}" \
 				--no-floppy \
@@ -198,14 +210,15 @@ init_bootloader() {
 			mv "$esp_mp/$PMX_LOADER_CONF.tmp" "$esp_mp/$PMX_LOADER_CONF"
 		fi
 	else
-		if [ "$ARCH" = "x86_64" ];then
-		echo "Installing grub i386-pc target.."
-		grub-install.real \
-			--boot-directory "$esp_mp" \
-			--target i386-pc \
-			--no-floppy \
-			--bootloader-id='proxmox' \
-			"/dev/$PKNAME"
+		if [ "$ARCH" = "x86_64" ]; then
+			_set_grub_install_bin
+			echo "Installing grub i386-pc target.."
+			"${GRUB_BIN}" \
+				--boot-directory "${esp_mp}" \
+				--target i386-pc \
+				--no-floppy \
+				--bootloader-id='proxmox' \
+				"/dev/$PKNAME"
 		fi
 	fi
 	echo "Unmounting '$part'."
